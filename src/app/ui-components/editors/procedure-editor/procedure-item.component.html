@@ -1,4 +1,6 @@
-<div [class.selected] = "prod.id == active_procedure?.id">
+<div [class.selected] = "prod.id == active_procedure?.id"
+		[class.print] = "prod.print"
+		[class.disabled] = "!prod.enabled">
 	<div class = "full-container" 
 		*ngIf='prod'>
 		<!-- (mouseover)="_activeProcedure = prod" -->
@@ -116,7 +118,24 @@
 						spellcheck="false">
 			</div>
 
+				
+			<!--button-->
+			<div style="float: right;">
+				<button class="btn--action"
+			   		(click)="prod.print = !prod.print" 
+			   		matTooltip="Print value to console"
+			   		*ngIf="prod.type =='Action' || prod.type =='Data'" tabindex="-1">
+		    		<mat-icon>print</mat-icon>
+			    </button>
+				
+				<button class="btn--action"
+					(click)="prod.enabled = !prod.enabled" 
+					matTooltip="Enable/Disable Line" tabindex="-1">
+		    		<mat-icon>check_circle</mat-icon>
+			    </button>
+			</div>
 		</div>
+
 		
 		<ng-container *ngIf='false'>
 			<div class="seg2 copy_paste_actions"></div>
@@ -177,7 +196,7 @@
 	</div>
 
 
-	<div class="children" *ngIf="prod.children.length > 0">
+	<div class="children" *ngIf="prod.children.length > 0 && prod.enabled">
 		<app-procedure-item 
 			*ngFor="let child of prod.children" 
 			[prod]="child"

@@ -7,6 +7,25 @@
 	padding-left: 15px;
 }
 
+.print{
+	background-color: #B9E788;
+}
+
+.disabled{
+	background-color: gray;
+	color: white !important;
+}
+
+.btn--action{
+	background: none;
+	border: none;
+	padding: 0px;
+
+	mat-icon{
+		font-size: 18px;
+	}
+}
+
 .full-container{
 	
 	padding: 4px; 

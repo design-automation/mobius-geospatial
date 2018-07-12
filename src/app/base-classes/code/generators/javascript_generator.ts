@@ -379,6 +379,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 					this.get_code_function_call(node, [], true) + "\n" + 
 					"return " + node.name + ";" 
 
+			console.log(print)
 			console.log(`Generated Script: ${str}`);
 
 			let result: any;

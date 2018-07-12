@@ -27,6 +27,7 @@ export class ExecuteService {
     //    to print values to console viewer
     //
     private static printFunction = function(varName: string, value: any){
+
         let consoleHTML: string = "";
         
         let variable_name: string = varName;
@@ -52,6 +53,7 @@ export class ExecuteService {
         consoleHTML += "<div class='console-line'>" +  "<span class='var-name'>Value of "  + variable_name + ": </span>" + 
                "<span class='var-value'>"  + variable_value +  "</div>";
 
+        console.log(`Printing ${consoleHTML}`);       
         ExecuteService.consoleMessages.push(consoleHTML);
     }
   
@@ -69,11 +71,10 @@ export class ExecuteService {
 
         try{
             
+            ExecuteService.consoleMessages = [];
             FlowchartUtils.execute(flowchart, code_generator, ModuleService.modules, ExecuteService.printFunction);
             
-            if(consoleMessages.length > 1){
-              this._cs.addMessage( consoleMessages.join(""), EConsoleMessageType.Print );
-            }
+            this._cs.addMessage( ExecuteService.consoleMessages.join(""), EConsoleMessageType.Print );
 
             this._cs.addMessage("Flowchart was successfully executed.");
             
@@ -84,11 +85,9 @@ export class ExecuteService {
 
             this._cs.log(ex);
           
-            if(consoleMessages.length > 1){
-              this._cs.addMessage( consoleMessages.join(""), EConsoleMessageType.Print );
-            }
+            this._cs.addMessage( ExecuteService.consoleMessages.join(""), EConsoleMessageType.Print );
             
-            consoleMessages = null;
+            ExecuteService.consoleMessages = [];
 
             let errorMessage: string = "<div class='error'>" + ex + "</div>";
             this._cs.addMessage( errorMessage, EConsoleMessageType.Error );
