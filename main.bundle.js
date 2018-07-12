@@ -798,6 +798,7 @@ class CodeGeneratorJS extends __WEBPACK_IMPORTED_MODULE_0__CodeGenerator__["a" /
         str += this.get_code_node(node, prodArr) + "\n" +
             this.get_code_function_call(node, [], true) + "\n" +
             "return " + node.name + ";";
+        console.log(print);
         console.log(`Generated Script: ${str}`);
         let result;
         try {
@@ -3149,20 +3150,17 @@ let ExecuteService = ExecuteService_1 = class ExecuteService {
         // get flowchart from _fs
         // get code_generator from _mb
         try {
+            ExecuteService_1.consoleMessages = [];
             __WEBPACK_IMPORTED_MODULE_5__base_classes_flowchart_FlowchartModule__["c" /* FlowchartUtils */].execute(flowchart, code_generator, __WEBPACK_IMPORTED_MODULE_3__module_service__["a" /* ModuleService */].modules, ExecuteService_1.printFunction);
-            if (consoleMessages.length > 1) {
-                this._cs.addMessage(consoleMessages.join(""), __WEBPACK_IMPORTED_MODULE_1__console_service__["b" /* EConsoleMessageType */].Print);
-            }
+            this._cs.addMessage(ExecuteService_1.consoleMessages.join(""), __WEBPACK_IMPORTED_MODULE_1__console_service__["b" /* EConsoleMessageType */].Print);
             this._cs.addMessage("Flowchart was successfully executed.");
             ///console.log(this._fs);
             ///this.push_fs(this._fs);
         }
         catch (ex) {
             this._cs.log(ex);
-            if (consoleMessages.length > 1) {
-                this._cs.addMessage(consoleMessages.join(""), __WEBPACK_IMPORTED_MODULE_1__console_service__["b" /* EConsoleMessageType */].Print);
-            }
-            consoleMessages = null;
+            this._cs.addMessage(ExecuteService_1.consoleMessages.join(""), __WEBPACK_IMPORTED_MODULE_1__console_service__["b" /* EConsoleMessageType */].Print);
+            ExecuteService_1.consoleMessages = [];
             let errorMessage = "<div class='error'>" + ex + "</div>";
             this._cs.addMessage(errorMessage, __WEBPACK_IMPORTED_MODULE_1__console_service__["b" /* EConsoleMessageType */].Error);
             // this.layoutService.showConsole();
@@ -3200,6 +3198,7 @@ ExecuteService.printFunction = function (varName, value) {
     }
     consoleHTML += "<div class='console-line'>" + "<span class='var-name'>Value of " + variable_name + ": </span>" +
         "<span class='var-value'>" + variable_value + "</div>";
+    console.log(`Printing ${consoleHTML}`);
     ExecuteService_1.consoleMessages.push(consoleHTML);
 };
 ExecuteService = ExecuteService_1 = __decorate([
@@ -11103,101 +11102,106 @@ let ProcedureEditorComponent = class ProcedureEditorComponent {
     }
     // ---- Cut / Copy / Paste Functions
     keyEvent(event) {
-        var key = event.keyCode;
-        var ctrlDown = event.ctrlKey || event.metaKey; // Makey support
-        var shiftDown = event.shiftKey;
-        if ((event.srcElement.className.indexOf("input") > -1)) {
-            event.stopPropagation();
-            return;
-        }
-        ;
-        if (ctrlDown) {
-            switch (key) {
-                case KEY_CODE.CUT:
-                    this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.active_node.active_procedure);
-                    console.log(`Cut-Copied Producedure ${this.copiedProd.type}`);
-                    this.delete_procedure();
-                    break;
-                case KEY_CODE.COPY:
-                    this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.active_node.active_procedure);
-                    console.log(`Copied Producedure ${this.copiedProd.type}`);
-                    break;
-                case KEY_CODE.PASTE:
-                    console.log(`Attempting to copy procedure ${this.copiedProd.type}`);
-                    if (this.copiedProd) {
-                        __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].add_procedure(this.active_node, this.copiedProd);
-                        this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.copiedProd);
-                    }
-                    else {
-                        this.$log.log("Procedure to copy not found");
-                    }
-                    break;
+        try {
+            var key = event.keyCode;
+            var ctrlDown = event.ctrlKey || event.metaKey; // Makey support
+            var shiftDown = event.shiftKey;
+            if ((event.srcElement.className.indexOf("input") > -1)) {
+                event.stopPropagation();
+                return;
             }
-        }
-        else if (shiftDown) {
-            let child = this.active_node.active_procedure;
-            let parent = child.parent;
-            let position;
-            let procedure_above;
-            let procedure_below;
-            console.log(`Procedure Above: ${procedure_above}`);
-            console.log(`Procedure Below: ${procedure_below}`);
-            if (parent == undefined) {
-                position = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].get_child_position(this.active_node, child);
-                procedure_above = this.active_node.children[position - 1];
-                procedure_below = this.active_node.children[position + 1];
-            }
-            else {
-                position = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].get_child_position(parent, child);
-                procedure_above = parent.children[position - 1];
-                procedure_below = parent.children[position + 1];
-            }
-            switch (key) {
-                case KEY_CODE.LEFT:
-                    if (!this.active_node.active_procedure.parent) { }
-                    else {
-                        let grandparent = parent.parent;
-                        if (grandparent) {
-                            __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].shift_level_up(this.active_node.active_procedure);
+            ;
+            if (ctrlDown) {
+                switch (key) {
+                    case KEY_CODE.CUT:
+                        this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.active_node.active_procedure);
+                        console.log(`Cut-Copied Producedure ${this.copiedProd.type}`);
+                        this.delete_procedure();
+                        break;
+                    case KEY_CODE.COPY:
+                        this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.active_node.active_procedure);
+                        console.log(`Copied Producedure ${this.copiedProd.type}`);
+                        break;
+                    case KEY_CODE.PASTE:
+                        console.log(`Attempting to copy procedure ${this.copiedProd.type}`);
+                        if (this.copiedProd) {
+                            __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].add_procedure(this.active_node, this.copiedProd);
+                            this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.copiedProd);
                         }
                         else {
-                            __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].delete_child(parent, child);
-                            let position = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].get_child_position(this.active_node, parent);
-                            __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].add_procedure_at_position(this.active_node, child, position + 1);
+                            this.$log.log("Procedure to copy not found");
                         }
-                    }
-                    break;
-                case KEY_CODE.RIGHT:
-                    if (position - 1 < 0)
-                        return;
-                    if (procedure_above.hasChildren == false)
-                        return;
-                    if (parent == undefined) {
-                        this.active_node = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].delete_procedure(child);
-                    }
-                    else {
-                        parent = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].delete_child(parent, child);
-                    }
-                    //ProcedureUtils.add_child(procedure_above, child);
-                    break;
-                case KEY_CODE.DOWN:
-                    if (procedure_below) {
-                        //this.onSelect(procedure_below);
-                    }
-                    else {
-                    }
-                case KEY_CODE.UP:
-                    console.log("up", procedure_above);
-                    if (procedure_above) {
-                        //this.onSelect(procedure_above);
-                    }
-                    else {
-                    }
-                    break;
+                        break;
+                }
+            }
+            else if (shiftDown) {
+                let child = this.active_node.active_procedure;
+                let parent = child.parent;
+                let position;
+                let procedure_above;
+                let procedure_below;
+                console.log(`Procedure Above: ${procedure_above}`);
+                console.log(`Procedure Below: ${procedure_below}`);
+                if (parent == undefined) {
+                    position = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].get_child_position(this.active_node, child);
+                    procedure_above = this.active_node.children[position - 1];
+                    procedure_below = this.active_node.children[position + 1];
+                }
+                else {
+                    position = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].get_child_position(parent, child);
+                    procedure_above = parent.children[position - 1];
+                    procedure_below = parent.children[position + 1];
+                }
+                switch (key) {
+                    case KEY_CODE.LEFT:
+                        if (!this.active_node.active_procedure.parent) { }
+                        else {
+                            let grandparent = parent.parent;
+                            if (grandparent) {
+                                __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].shift_level_up(this.active_node.active_procedure);
+                            }
+                            else {
+                                __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].delete_child(parent, child);
+                                let position = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].get_child_position(this.active_node, parent);
+                                __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].add_procedure_at_position(this.active_node, child, position + 1);
+                            }
+                        }
+                        break;
+                    case KEY_CODE.RIGHT:
+                        if (position - 1 < 0)
+                            return;
+                        if (procedure_above.hasChildren == false)
+                            return;
+                        if (parent == undefined) {
+                            this.active_node = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].delete_procedure(child);
+                        }
+                        else {
+                            parent = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].delete_child(parent, child);
+                        }
+                        //ProcedureUtils.add_child(procedure_above, child);
+                        break;
+                    case KEY_CODE.DOWN:
+                        if (procedure_below) {
+                            //this.onSelect(procedure_below);
+                        }
+                        else {
+                        }
+                    case KEY_CODE.UP:
+                        console.log("up", procedure_above);
+                        if (procedure_above) {
+                            //this.onSelect(procedure_above);
+                        }
+                        else {
+                        }
+                        break;
+                }
+            }
+            else if (key == KEY_CODE.DELETE) {
+                this.delete_procedure();
             }
         }
-        else if (key == KEY_CODE.DELETE) {
-            this.delete_procedure();
+        catch (ex) {
+            console.log(`Error occured during key commands ${ex}`);
         }
     }
     delete_procedure() {
@@ -11229,14 +11233,14 @@ ProcedureEditorComponent = __decorate([
 /***/ "./src/app/ui-components/editors/procedure-editor/procedure-item.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div [class.selected] = \"prod.id == active_procedure?.id\">\r\n\t<div class = \"full-container\" \r\n\t\t*ngIf='prod'>\r\n\t\t<!-- (mouseover)=\"_activeProcedure = prod\" -->\r\n\t\t<div class = \"seg1\" \r\n\t\t\t[class.print]=\"prod.print\"\r\n\t\t\t[class.error]=\"prod.error\" \r\n\t\t\t[class.disabled]=\"!prod.enabled\"\r\n\t\t\t(click)=\"onSelect($event)\">\r\n\r\n\t\t\t<!-- template for data -->\r\n\t\t\t<div *ngIf=\"prod.type == 'Data'\"> \r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\trequired spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.right.expression.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" required spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'If' || prod.type == 'ElseIf'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}} :::</span> \r\n\t\t\t\t <input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.right.expression.length + 4\"  \r\n\t\t\t\t\t[(ngModel)]=\"prod.right.expression\"\r\n\t\t\t\t\trequired spellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Else'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}}</span> \r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'For Loop'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>for each (</span> \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\r\n\t\t\t\t\t<span style=\"margin: 0px 10px;\">in</span>  \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" spellcheck=\"false\" list=\"variable-suggestions\"> \r\n\t\t\t\t\t)\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'While'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>while :::</span> \r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Action'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" required\r\n\t\t\t\t\t\tspellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\t\t\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"module\">{{prod.right.module.replace(\"_\",  \".\")}}</span>\r\n\t\t\t\t\t.\r\n\t\t\t\r\n\t\t\t\t\t  <span class=\"function\">{{prod.right.fn_name}}</span> \r\n\t\t\t\r\n\t\t\t\t\t( <span *ngIf=\"prod.right.params.length>0\">\r\n\t\t\t\t\t\t\t<div class=\"param-container\" \r\n\t\t\t\t\t\t\t\t*ngFor=\"let p of prod.right.params; let i=index\">\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t\t [style.width.ch]=\"prod.right.params[i].value.length + 4\" \r\n\t\t\t\t\t\t\t\t [(ngModel)]=\"prod.right.params[i].value\"\r\n\t\t\t\t\t\t\t\t required spellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\r\n\t\t\t\t\t\t\t\t<span *ngIf='i<prod.right.params.length-1'>,</span>\r\n\t\t\t\t\t\t\t</div> \r\n\t\t\t\t\t\t</span>\t)\r\n\t\t\t\t\t\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Loop Break' || prod.type == 'Loop Continue'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t {{prod.left.expression}}\r\n\t\t\t\t</div>\r\n\t\t\t</div> \r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Comment'\">\r\n\t\t\t\t<input matInput class=\"tree-input comment\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t</div>\r\n\r\n\t\t</div>\r\n\t\t\r\n\t\t<ng-container *ngIf='false'>\r\n\t\t\t<div class=\"seg2 copy_paste_actions\"></div>\r\n\t\t\t<div class = \"seg2\">\r\n\t\t\t\t<div class=\"seg2btncontainer\">\r\n\r\n\t\t\t\t\t<div>\r\n\t\t\t\t\t\t<!-- cut copy paste -->\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Cut Procedure Line\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'cut')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_cut</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Copy Procedure Line\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"delete($event, prod, 'copy')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_copy</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Paste Procedure\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'paste')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_paste</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<div *ngIf=\"prod.type != 'Else' && prod.type != 'If'\">\r\n\t\t\t\t\t\t<!-- other actions -->\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t    *ngIf=\"prod.type =='Action'\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'help')\" tabindex=\"-1\">\r\n\t\t\t\t\t\t\t<mat-icon>help_outline</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\r\n\t\t\t\t\t   \t<button mat-button\r\n\t\t\t\t\t   \t\t(click)=\"prod.print = !prod.print\" \r\n\t\t\t\t\t   \t\tmatTooltip=\"Print value to console\"\r\n\t\t\t\t\t   \t\t*ngIf=\"prod.type =='Action' || prod.type =='Data'\" tabindex=\"-1\">\r\n\t\t\t\t    \t\t<mat-icon>print</mat-icon>\r\n\t\t\t\t\t    </button>\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\t(click)=\"prod.enabled = !prod.enabled\" \r\n\t\t\t\t\t\t\tmatTooltip=\"Enable/Disable Line\" tabindex=\"-1\">\r\n\t\t\t\t    \t\t<mat-icon>check_circle</mat-icon>\r\n\t\t\t\t\t    </button>\r\n\t\t\t\t        \r\n\t\t\t\t        <button mat-button matTooltip=\"Delete Line\" \r\n\t\t\t\t        \ttabindex=\"-1\"\r\n\t\t\t\t       \t\t(click)=\"onAction($event, prod, 'delete')\">\r\n\t\t\t\t    \t\t<mat-icon>delete</mat-icon>\r\n\t\t\t\t\t    </button>\r\n\t\t\t\t\t    <!-- <button (click)=\"disableProcedure(prod, $event)\">Disable</button>\r\n\t\t\t\t\t    <button (click)=\"go($event)\">Copy</button> -->\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t</ng-container>\r\n\t</div>\r\n\r\n\r\n\t<div class=\"children\" *ngIf=\"prod.children.length > 0\">\r\n\t\t<app-procedure-item \r\n\t\t\t*ngFor=\"let child of prod.children\" \r\n\t\t\t[prod]=\"child\"\r\n\t\t\t[root]=\"root\"\r\n\t\t\t[active_procedure]=\"active_procedure\"\r\n\t\t\t[level]=\"level+1\">\r\n\t\t</app-procedure-item>\r\n\t</div>\r\n</div>"
+module.exports = "<div [class.selected] = \"prod.id == active_procedure?.id\"\r\n\t\t[class.print] = \"prod.print\"\r\n\t\t[class.disabled] = \"!prod.enabled\">\r\n\t<div class = \"full-container\" \r\n\t\t*ngIf='prod'>\r\n\t\t<!-- (mouseover)=\"_activeProcedure = prod\" -->\r\n\t\t<div class = \"seg1\" \r\n\t\t\t[class.print]=\"prod.print\"\r\n\t\t\t[class.error]=\"prod.error\" \r\n\t\t\t[class.disabled]=\"!prod.enabled\"\r\n\t\t\t(click)=\"onSelect($event)\">\r\n\r\n\t\t\t<!-- template for data -->\r\n\t\t\t<div *ngIf=\"prod.type == 'Data'\"> \r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\trequired spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.right.expression.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" required spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'If' || prod.type == 'ElseIf'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}} :::</span> \r\n\t\t\t\t <input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.right.expression.length + 4\"  \r\n\t\t\t\t\t[(ngModel)]=\"prod.right.expression\"\r\n\t\t\t\t\trequired spellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Else'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}}</span> \r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'For Loop'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>for each (</span> \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\r\n\t\t\t\t\t<span style=\"margin: 0px 10px;\">in</span>  \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" spellcheck=\"false\" list=\"variable-suggestions\"> \r\n\t\t\t\t\t)\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'While'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>while :::</span> \r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Action'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" required\r\n\t\t\t\t\t\tspellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\t\t\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"module\">{{prod.right.module.replace(\"_\",  \".\")}}</span>\r\n\t\t\t\t\t.\r\n\t\t\t\r\n\t\t\t\t\t  <span class=\"function\">{{prod.right.fn_name}}</span> \r\n\t\t\t\r\n\t\t\t\t\t( <span *ngIf=\"prod.right.params.length>0\">\r\n\t\t\t\t\t\t\t<div class=\"param-container\" \r\n\t\t\t\t\t\t\t\t*ngFor=\"let p of prod.right.params; let i=index\">\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t\t [style.width.ch]=\"prod.right.params[i].value.length + 4\" \r\n\t\t\t\t\t\t\t\t [(ngModel)]=\"prod.right.params[i].value\"\r\n\t\t\t\t\t\t\t\t required spellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\r\n\t\t\t\t\t\t\t\t<span *ngIf='i<prod.right.params.length-1'>,</span>\r\n\t\t\t\t\t\t\t</div> \r\n\t\t\t\t\t\t</span>\t)\r\n\t\t\t\t\t\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Loop Break' || prod.type == 'Loop Continue'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t {{prod.left.expression}}\r\n\t\t\t\t</div>\r\n\t\t\t</div> \r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Comment'\">\r\n\t\t\t\t<input matInput class=\"tree-input comment\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t</div>\r\n\r\n\t\t\t\t\r\n\t\t\t<!--button-->\r\n\t\t\t<div style=\"float: right;\">\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t   \t\t(click)=\"prod.print = !prod.print\" \r\n\t\t\t   \t\tmatTooltip=\"Print value to console\"\r\n\t\t\t   \t\t*ngIf=\"prod.type =='Action' || prod.type =='Data'\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>print</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t\t\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t\t\t(click)=\"prod.enabled = !prod.enabled\" \r\n\t\t\t\t\tmatTooltip=\"Enable/Disable Line\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>check_circle</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t\t\r\n\t\t<ng-container *ngIf='false'>\r\n\t\t\t<div class=\"seg2 copy_paste_actions\"></div>\r\n\t\t\t<div class = \"seg2\">\r\n\t\t\t\t<div class=\"seg2btncontainer\">\r\n\r\n\t\t\t\t\t<div>\r\n\t\t\t\t\t\t<!-- cut copy paste -->\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Cut Procedure Line\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'cut')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_cut</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Copy Procedure Line\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"delete($event, prod, 'copy')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_copy</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Paste Procedure\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'paste')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_paste</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<div *ngIf=\"prod.type != 'Else' && prod.type != 'If'\">\r\n\t\t\t\t\t\t<!-- other actions -->\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t    *ngIf=\"prod.type =='Action'\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'help')\" tabindex=\"-1\">\r\n\t\t\t\t\t\t\t<mat-icon>help_outline</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\r\n\t\t\t\t\t   \t<button mat-button\r\n\t\t\t\t\t   \t\t(click)=\"prod.print = !prod.print\" \r\n\t\t\t\t\t   \t\tmatTooltip=\"Print value to console\"\r\n\t\t\t\t\t   \t\t*ngIf=\"prod.type =='Action' || prod.type =='Data'\" tabindex=\"-1\">\r\n\t\t\t\t    \t\t<mat-icon>print</mat-icon>\r\n\t\t\t\t\t    </button>\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\t(click)=\"prod.enabled = !prod.enabled\" \r\n\t\t\t\t\t\t\tmatTooltip=\"Enable/Disable Line\" tabindex=\"-1\">\r\n\t\t\t\t    \t\t<mat-icon>check_circle</mat-icon>\r\n\t\t\t\t\t    </button>\r\n\t\t\t\t        \r\n\t\t\t\t        <button mat-button matTooltip=\"Delete Line\" \r\n\t\t\t\t        \ttabindex=\"-1\"\r\n\t\t\t\t       \t\t(click)=\"onAction($event, prod, 'delete')\">\r\n\t\t\t\t    \t\t<mat-icon>delete</mat-icon>\r\n\t\t\t\t\t    </button>\r\n\t\t\t\t\t    <!-- <button (click)=\"disableProcedure(prod, $event)\">Disable</button>\r\n\t\t\t\t\t    <button (click)=\"go($event)\">Copy</button> -->\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t</ng-container>\r\n\t</div>\r\n\r\n\r\n\t<div class=\"children\" *ngIf=\"prod.children.length > 0 && prod.enabled\">\r\n\t\t<app-procedure-item \r\n\t\t\t*ngFor=\"let child of prod.children\" \r\n\t\t\t[prod]=\"child\"\r\n\t\t\t[root]=\"root\"\r\n\t\t\t[active_procedure]=\"active_procedure\"\r\n\t\t\t[level]=\"level+1\">\r\n\t\t</app-procedure-item>\r\n\t</div>\r\n</div>"
 
 /***/ }),
 
 /***/ "./src/app/ui-components/editors/procedure-editor/procedure-item.component.scss":
 /***/ (function(module, exports) {
 
-module.exports = ".reset {\n  margin: 0px;\n  padding: 0px; }\n\n.default {\n  font-size: 12px;\n  color: #8AA8C0;\n  line-height: 150px;\n  text-align: center; }\n\n.viewer {\n  /* \twidth: 100%; \r\noverflow: auto;\r\n\r\npadding: 0px;\r\nmargin: 0px;\r\n\r\n.header{\r\n\r\n\tdisplay: flex; \r\n\tflex-direction: row; \r\n\tjustify-content: space-between;\r\n\r\n\tposition: relative;\r\n\tfont-size: 14px; \r\n\tfont-weight: 600; \r\n\tline-height: $header-height;\r\n\ttext-transform: uppercase;\r\n\tletter-spacing: 1.5px;\r\n\theight: $header-height;\r\n\r\n\tcolor: #ADADAD;\r\n\r\n\t.btn-group{\r\n\t\theight: $header-height; \r\n\r\n\t\tbutton{\r\n\t\t\twidth: 0.9*$header-height; \r\n\t\t\theight: 0.9*$header-height; \r\n\t\t\tmargin: 0px;\r\n\t\t\tborder: 1px solid #B4B1B1;\r\n\t\t\tbox-shadow: none;\r\n\r\n\t\t\t&:focus{\r\n\t\t\t\t\r\n\t\t\t}\r\n\t\t}\r\n\t\t\r\n\t}\r\n\r\n}\r\n\r\n.container{\r\n}\r\n\r\nbutton{\r\n\t&:focus{\r\n\t\t\r\n\t}\r\n} */ }\n\n.viewer .container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: horizontal;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: row;\n            flex-direction: row;\n    height: 100%; }\n\n.viewer .container .sidebar {\n      z-index: 100; }\n\n.viewer .container .view-container {\n      -webkit-box-sizing: border-box;\n              box-sizing: border-box;\n      height: 100%;\n      width: 100%;\n      padding-bottom: 30px;\n      overflow: auto; }\n\n.children {\n  padding-left: 15px; }\n\n.full-container {\n  padding: 4px;\n  font-size: 14px;\n  font-weight: lighter;\n  font-family: sans-serif; }\n\n.full-container::hover {\n    background-color: gray; }\n\ninput {\n  border-bottom: 1px dashed;\n  text-align: center; }\n\ninput.comment {\n    text-align: left;\n    font-weight: bold;\n    padding: 10px 5px;\n    margin: 10px 0px;\n    color: green;\n    font-size: 16px;\n    letter-spacing: 2px;\n    border: 1px solid green; }\n\n.procedure-item {\n  font-family: 'Ubuntu Mono', monospace; }\n\n.procedure-item span.module {\n    color: #F3A32A !important;\n    font-weight: bold; }\n\n.procedure-item span.function {\n    color: #7B52AB !important;\n    font-weight: bold; }\n\n.procedure-item span.equal {\n    text-align: center;\n    width: 15px; }\n\n.selected {\n  border: 1px solid #395D73;\n  border-radius: 2px; }\n\n.full-container {\n  width: 100% !important;\n  padding: 0px !important;\n  border-radius: 0px;\n  -webkit-transition: none;\n  transition: none;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical !important;\n  -webkit-box-direction: normal !important;\n      -ms-flex-flow: column nowrap !important;\n          flex-flow: column nowrap !important;\n  white-space: nowrap !important;\n  overflow-y: hidden !important;\n  overflow-x: auto !important;\n  -webkit-box-pack: justify !important;\n      -ms-flex-pack: justify !important;\n          justify-content: space-between !important; }\n\n.full-container:hover .seg2 {\n    display: -webkit-box !important;\n    display: -ms-flexbox !important;\n    display: flex !important; }\n\n.full-container:hover .seg2 .seg2btncontainer {\n      position: absolute;\n      right: 5px; }\n\n.full-container .seg1 {\n    min-width: 80% !important;\n    display: -webkit-box !important;\n    display: -ms-flexbox !important;\n    display: flex !important;\n    -webkit-box-orient: horizontal !important;\n    -webkit-box-direction: normal !important;\n        -ms-flex-flow: row nowrap !important;\n            flex-flow: row nowrap !important;\n    -webkit-box-align: center !important;\n        -ms-flex-align: center !important;\n            align-items: center !important;\n    -webkit-box-pack: justify !important;\n        -ms-flex-pack: justify !important;\n            justify-content: space-between !important;\n    -ms-flex-negative: 0 !important;\n        flex-shrink: 0 !important; }\n\n.full-container .procedure-item {\n    color: #82BF6E !important;\n    display: -webkit-box !important;\n    display: -ms-flexbox !important;\n    display: flex !important;\n    -webkit-box-orient: horizontal !important;\n    -webkit-box-direction: normal !important;\n        -ms-flex-flow: row nowrap !important;\n            flex-flow: row nowrap !important;\n    -webkit-box-align: center !important;\n        -ms-flex-align: center !important;\n            align-items: center !important; }\n\n.full-container .procedure-item span {\n      font-weight: bold !important;\n      color: #82BF6E !important; }\n\n.full-container .procedure-item .tree-input {\n      min-width: 30px !important;\n      color: #395D73 !important;\n      background-color: white;\n      border-style: solid !important;\n      border: 0px;\n      border-bottom: 1px solid #395D73;\n      font-weight: normal !important;\n      text-align: center;\n      margin: 2px 0px; }\n\n.full-container .procedure-item .tree-input:focus {\n        background-color: #F0BFA0 !important; }\n\n.full-container .procedure-item .tree-input:focus:hover {\n          color: #395D73 !important; }\n\n.full-container .procedure-item .tree-input:hover {\n        color: #F0BFA0 !important; }\n\n.full-container .seg2 {\n    display: none !important; }\n\n.full-container .seg2 .seg2btncontainer {\n      height: 15px !important;\n      padding: 2px;\n      border-radius: 2px;\n      display: -webkit-box !important;\n      display: -ms-flexbox !important;\n      display: flex !important;\n      -webkit-box-orient: horizontal !important;\n      -webkit-box-direction: normal !important;\n          -ms-flex-flow: row nowrap !important;\n              flex-flow: row nowrap !important;\n      -webkit-box-pack: end !important;\n          -ms-flex-pack: end !important;\n              justify-content: flex-end !important;\n      background-color: #f0bfa0 !important;\n      -webkit-box-flex: 1 !important;\n          -ms-flex-positive: 1 !important;\n              flex-grow: 1 !important;\n      -ms-flex-negative: 0 !important;\n          flex-shrink: 0 !important; }\n\n.full-container .seg2 .seg2btncontainer button {\n        margin: 0px !important;\n        max-width: 15px !important;\n        max-height: 15px !important;\n        min-width: 15px !important;\n        padding: 0px !important;\n        -webkit-box-flex: 0 !important;\n            -ms-flex-positive: 0 !important;\n                flex-grow: 0 !important;\n        -ms-flex-negative: 0 !important;\n            flex-shrink: 0 !important; }\n\n.full-container .seg2 .seg2btncontainer button mat-icon {\n          max-height: 15px !important;\n          vertical-align: top !important;\n          font-size: 15px !important;\n          text-align: left !important; }\n\n.full-container .seg2 .seg2btncontainer button:hover {\n          background-color: #F1F1F1 !important; }\n\n.full-container .seg2 .seg2btncontainer button:hover mat-icon {\n            color: #F07A79 !important; }\n\n.full-container .seg2 .seg2btncontainer:hover {\n        display: -webkit-box;\n        display: -ms-flexbox;\n        display: flex; }\n"
+module.exports = ".reset {\n  margin: 0px;\n  padding: 0px; }\n\n.default {\n  font-size: 12px;\n  color: #8AA8C0;\n  line-height: 150px;\n  text-align: center; }\n\n.viewer {\n  /* \twidth: 100%; \r\noverflow: auto;\r\n\r\npadding: 0px;\r\nmargin: 0px;\r\n\r\n.header{\r\n\r\n\tdisplay: flex; \r\n\tflex-direction: row; \r\n\tjustify-content: space-between;\r\n\r\n\tposition: relative;\r\n\tfont-size: 14px; \r\n\tfont-weight: 600; \r\n\tline-height: $header-height;\r\n\ttext-transform: uppercase;\r\n\tletter-spacing: 1.5px;\r\n\theight: $header-height;\r\n\r\n\tcolor: #ADADAD;\r\n\r\n\t.btn-group{\r\n\t\theight: $header-height; \r\n\r\n\t\tbutton{\r\n\t\t\twidth: 0.9*$header-height; \r\n\t\t\theight: 0.9*$header-height; \r\n\t\t\tmargin: 0px;\r\n\t\t\tborder: 1px solid #B4B1B1;\r\n\t\t\tbox-shadow: none;\r\n\r\n\t\t\t&:focus{\r\n\t\t\t\t\r\n\t\t\t}\r\n\t\t}\r\n\t\t\r\n\t}\r\n\r\n}\r\n\r\n.container{\r\n}\r\n\r\nbutton{\r\n\t&:focus{\r\n\t\t\r\n\t}\r\n} */ }\n\n.viewer .container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: horizontal;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: row;\n            flex-direction: row;\n    height: 100%; }\n\n.viewer .container .sidebar {\n      z-index: 100; }\n\n.viewer .container .view-container {\n      -webkit-box-sizing: border-box;\n              box-sizing: border-box;\n      height: 100%;\n      width: 100%;\n      padding-bottom: 30px;\n      overflow: auto; }\n\n.children {\n  padding-left: 15px; }\n\n.print {\n  background-color: #B9E788; }\n\n.disabled {\n  background-color: gray;\n  color: white !important; }\n\n.btn--action {\n  background: none;\n  border: none;\n  padding: 0px; }\n\n.btn--action mat-icon {\n    font-size: 18px; }\n\n.full-container {\n  padding: 4px;\n  font-size: 14px;\n  font-weight: lighter;\n  font-family: sans-serif; }\n\n.full-container::hover {\n    background-color: gray; }\n\ninput {\n  border-bottom: 1px dashed;\n  text-align: center; }\n\ninput.comment {\n    text-align: left;\n    font-weight: bold;\n    padding: 10px 5px;\n    margin: 10px 0px;\n    color: green;\n    font-size: 16px;\n    letter-spacing: 2px;\n    border: 1px solid green; }\n\n.procedure-item {\n  font-family: 'Ubuntu Mono', monospace; }\n\n.procedure-item span.module {\n    color: #F3A32A !important;\n    font-weight: bold; }\n\n.procedure-item span.function {\n    color: #7B52AB !important;\n    font-weight: bold; }\n\n.procedure-item span.equal {\n    text-align: center;\n    width: 15px; }\n\n.selected {\n  border: 1px solid #395D73;\n  border-radius: 2px; }\n\n.full-container {\n  width: 100% !important;\n  padding: 0px !important;\n  border-radius: 0px;\n  -webkit-transition: none;\n  transition: none;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical !important;\n  -webkit-box-direction: normal !important;\n      -ms-flex-flow: column nowrap !important;\n          flex-flow: column nowrap !important;\n  white-space: nowrap !important;\n  overflow-y: hidden !important;\n  overflow-x: auto !important;\n  -webkit-box-pack: justify !important;\n      -ms-flex-pack: justify !important;\n          justify-content: space-between !important; }\n\n.full-container:hover .seg2 {\n    display: -webkit-box !important;\n    display: -ms-flexbox !important;\n    display: flex !important; }\n\n.full-container:hover .seg2 .seg2btncontainer {\n      position: absolute;\n      right: 5px; }\n\n.full-container .seg1 {\n    min-width: 80% !important;\n    display: -webkit-box !important;\n    display: -ms-flexbox !important;\n    display: flex !important;\n    -webkit-box-orient: horizontal !important;\n    -webkit-box-direction: normal !important;\n        -ms-flex-flow: row nowrap !important;\n            flex-flow: row nowrap !important;\n    -webkit-box-align: center !important;\n        -ms-flex-align: center !important;\n            align-items: center !important;\n    -webkit-box-pack: justify !important;\n        -ms-flex-pack: justify !important;\n            justify-content: space-between !important;\n    -ms-flex-negative: 0 !important;\n        flex-shrink: 0 !important; }\n\n.full-container .procedure-item {\n    color: #82BF6E !important;\n    display: -webkit-box !important;\n    display: -ms-flexbox !important;\n    display: flex !important;\n    -webkit-box-orient: horizontal !important;\n    -webkit-box-direction: normal !important;\n        -ms-flex-flow: row nowrap !important;\n            flex-flow: row nowrap !important;\n    -webkit-box-align: center !important;\n        -ms-flex-align: center !important;\n            align-items: center !important; }\n\n.full-container .procedure-item span {\n      font-weight: bold !important;\n      color: #82BF6E !important; }\n\n.full-container .procedure-item .tree-input {\n      min-width: 30px !important;\n      color: #395D73 !important;\n      background-color: white;\n      border-style: solid !important;\n      border: 0px;\n      border-bottom: 1px solid #395D73;\n      font-weight: normal !important;\n      text-align: center;\n      margin: 2px 0px; }\n\n.full-container .procedure-item .tree-input:focus {\n        background-color: #F0BFA0 !important; }\n\n.full-container .procedure-item .tree-input:focus:hover {\n          color: #395D73 !important; }\n\n.full-container .procedure-item .tree-input:hover {\n        color: #F0BFA0 !important; }\n\n.full-container .seg2 {\n    display: none !important; }\n\n.full-container .seg2 .seg2btncontainer {\n      height: 15px !important;\n      padding: 2px;\n      border-radius: 2px;\n      display: -webkit-box !important;\n      display: -ms-flexbox !important;\n      display: flex !important;\n      -webkit-box-orient: horizontal !important;\n      -webkit-box-direction: normal !important;\n          -ms-flex-flow: row nowrap !important;\n              flex-flow: row nowrap !important;\n      -webkit-box-pack: end !important;\n          -ms-flex-pack: end !important;\n              justify-content: flex-end !important;\n      background-color: #f0bfa0 !important;\n      -webkit-box-flex: 1 !important;\n          -ms-flex-positive: 1 !important;\n              flex-grow: 1 !important;\n      -ms-flex-negative: 0 !important;\n          flex-shrink: 0 !important; }\n\n.full-container .seg2 .seg2btncontainer button {\n        margin: 0px !important;\n        max-width: 15px !important;\n        max-height: 15px !important;\n        min-width: 15px !important;\n        padding: 0px !important;\n        -webkit-box-flex: 0 !important;\n            -ms-flex-positive: 0 !important;\n                flex-grow: 0 !important;\n        -ms-flex-negative: 0 !important;\n            flex-shrink: 0 !important; }\n\n.full-container .seg2 .seg2btncontainer button mat-icon {\n          max-height: 15px !important;\n          vertical-align: top !important;\n          font-size: 15px !important;\n          text-align: left !important; }\n\n.full-container .seg2 .seg2btncontainer button:hover {\n          background-color: #F1F1F1 !important; }\n\n.full-container .seg2 .seg2btncontainer button:hover mat-icon {\n            color: #F07A79 !important; }\n\n.full-container .seg2 .seg2btncontainer:hover {\n        display: -webkit-box;\n        display: -ms-flexbox;\n        display: flex; }\n"
 
 /***/ }),
 
