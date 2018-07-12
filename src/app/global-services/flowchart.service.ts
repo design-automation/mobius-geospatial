@@ -91,20 +91,22 @@ export class FlowchartService {
   load_flowchart_from_string(fileString: string): void{
       let _this = this;
       let jsonData: {language: string, flowchart: JSON, modules: JSON};
-
+      let flowchart: IFlowchart;
+      
       try{
         let data = CircularJSON.parse(fileString);
 
         this.update_code_generator(CodeFactory.getCodeGenerator(data["language"]));
         this.update_modules();
 
-        let flowchart: IFlowchart = FlowchartReader.read_flowchart_from_data(data["flowchart"]);
-        this.push_flowchart(flowchart);
+        flowchart = FlowchartReader.read_flowchart_from_data(data["flowchart"]);
         // TODO: select a node
       }
       catch(err){
         this.$log.log(`Error loading file from string: ${err}`);
       }
+
+      this.push_flowchart(flowchart);
   }
 
   //

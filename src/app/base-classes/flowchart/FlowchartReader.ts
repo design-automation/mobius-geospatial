@@ -19,22 +19,21 @@ export abstract class FlowchartReader{
 	    let edges_data: IEdge[] = data["_edges"];
 
 	    /// adding all nodes
-	    let all_nodes: IGraphNode[] = [];
 	    for(let node_data of nodes_data){	
 	    	let n: IGraphNode = NodeUtils.copy_node(node_data, true);
 	    	fc.nodes.push(n);
 	    	//FlowchartUtils.add_node_from_data(fc, node_data);
 	    }
 
-	    console.log(data)
-
 	    /// adding all edges
 	    for(let e_data of edges_data){
 	    	let in_node = e_data.input_address[0];
 	    	let out_node = e_data.output_address[0];
+
+	    	console.log(`Attempt to add edge between ${in_node} and ${out_node} in the FlowchartReader`);
 	    	
-	    	let valid_input: boolean = (in_node  >= 0 && in_node < all_nodes.length);
-	    	let valid_output: boolean = (out_node  >= 0 && out_node < all_nodes.length);
+	    	let valid_input: boolean = (in_node  >= 0 && in_node < nodes_data.length);
+	    	let valid_output: boolean = (out_node  >= 0 && out_node < nodes_data.length);
 
 	    	if( valid_input && valid_output ){
 	    		FlowchartUtils.add_edge(fc, e_data.output_address, e_data.input_address);

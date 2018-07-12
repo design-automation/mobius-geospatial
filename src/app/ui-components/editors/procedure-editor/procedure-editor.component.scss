@@ -29,6 +29,15 @@ mat-expansion-panel-header{
 }
 
 
+input{
+	border: none;
+}
+
+input:focus{
+	border-bottom: 1px dashed gray;
+}
+
+
 
 .selected{
 	background-color: gray;

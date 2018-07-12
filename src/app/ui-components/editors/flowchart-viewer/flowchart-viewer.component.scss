@@ -4,6 +4,14 @@ split-area{
 	overflow: auto !important;
 }
 
+input{
+	border: none;
+}
+
+input:focus{
+	border-bottom: 1px dashed gray;
+}
+
 
 #flowchart__name{
 	margin: 0 auto;

@@ -1,9 +1,9 @@
 <div class="edge-container" 
 	style="position: absolute;"
-	[style.top.px]="getTop()"
-	[style.left.px]="getLeft()"
-	[style.width.px]="getWidth()"
-	[style.height.px]="getHeight()"
+	[style.top.px]="top"
+	[style.left.px]="left"
+	[style.width.px]="width"
+	[style.height.px]="height"
 	(click)="onSelect()">
 
 	<canvas #canvas id='edge{{edge.id}}'></canvas>

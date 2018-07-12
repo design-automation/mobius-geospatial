@@ -150,6 +150,8 @@ export class FlowchartUtils{
 			throw Error("Invalid arguments for edge");
 		}
 
+		console.log(`Edge created`);
+
 		let oNode = flowchart.nodes[outputAddress[0]];
      	let iNode = flowchart.nodes[inputAddress[0]];
 
@@ -173,6 +175,7 @@ export class FlowchartUtils{
 		    output.isConnected = true;
 		    input.isConnected = true;
 			
+
 			// todo: check for valid input/output addresses and port address
 			flowchart.edges.push(edge);
 		}

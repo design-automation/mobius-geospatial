@@ -58,14 +58,14 @@ export abstract class NodeUtils{
 		return node;
 	}
 
-	public static delete_port(node: IGraphNode, port: InputPort|OutputPort): IGraphNode{
+	public static delete_port(node: IGraphNode, port: any): IGraphNode{
 
 		let prop = "";
 
 		if ( port instanceof InputPort ){
 			prop = "inputs";
 		}
-		else if( (port instanceof OutputPort) ){
+		else if( port instanceof OutputPort ){
 			prop = "outputs";
 		}
 		else{

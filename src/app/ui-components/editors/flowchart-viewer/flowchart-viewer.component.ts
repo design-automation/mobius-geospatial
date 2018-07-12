@@ -87,7 +87,6 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
   top: number = 0;
   zoom: number = 1; 
 
-
   _selectedNode: IGraphNode;
   _selectedNodeIndex: number;
   _selectedPortIndex: number;
@@ -124,15 +123,29 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
     this._fs.push_node(this.active_node)
   }
 
-  render_flowchart(){
-    if(this.fc){
-      this.fc.nodes.map( (node) => node["width"] = FlowchartRenderUtils.node_width(node) );
+  render_edges(){
+    try{
       this.fc.edges.map( (edge) => {
         edge["inputPosition"] = FlowchartRenderUtils.get_port_position( this.fc.nodes[edge.input_address[0]], edge.input_address[1], "pi");
         edge["outputPosition"] = FlowchartRenderUtils.get_port_position(this.fc.nodes[edge.output_address[0]], edge.output_address[1], "po");
-      })
+      });
+      console.log(`Edges rendered successfully`);
+    }
+    catch(ex){
+      console.log(`Error while rendering edges, trying again in 0.5s`);
+
+      //TODO: Find a better way!
+      let that = this;
+      setTimeout(() => {that.render_edges()}, 500);
+    }
+  }
+
+  render_flowchart(){
+    if(this.fc){
+      this.fc.nodes.map( (node) => node["width"] = FlowchartRenderUtils.node_width(node) );
+      this.render_edges();
     }  
-    //this.$log.log("Flowchart was re-rendered");
+    this.$log.log(`Re-rendering flowchart`);
   }
 
 

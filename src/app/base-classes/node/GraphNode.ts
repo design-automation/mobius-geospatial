@@ -26,15 +26,12 @@ export class GraphNode implements IGraphNode{
 	private _hasExecuted: boolean = false;
 	public _hasError: boolean = false;
 
-
-	private _position: any;
-
 	private _dependencies: any = [];
 	private _dependencyNodes: number[] = [];
 
 	private _active: IProcedure;
 
-	public position: number[] = [0,0];
+	private _position: number[] = [0,0];
 
 	private _time;
 
@@ -150,6 +147,14 @@ export class GraphNode implements IGraphNode{
 
 	set time_taken(value: number){
 		this._time = value;
+	}
+
+	get position(): number[]{
+		return this._position;
+	}
+
+	set position(value: number[]){
+		this._position = value;
 	}
 
 
