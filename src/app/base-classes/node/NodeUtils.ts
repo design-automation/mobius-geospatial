@@ -235,7 +235,7 @@ export abstract class NodeUtils{
 		return varList;
 	}
 	
-	public static execute_node(node: IGraphNode, code_generator: ICodeGenerator, modules: IModule[], print: Function, globals?: any): void{
+	public static execute_node(node: IGraphNode, code_generator: ICodeGenerator, modules: any, print: Function, globals?: any): void{
 
 		console.log(`${node.name} is executing...`);
 

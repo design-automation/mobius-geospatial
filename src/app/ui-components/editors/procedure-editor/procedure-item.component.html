@@ -22,7 +22,7 @@
 					<span class="equal">=</span>
 
 					<input matInput class="tree-input" 
-					[style.width.ch]="prod.right.expression.length + 4" 
+					[style.width.ch]="prod.right.expression?.length + 4" 
 					[(ngModel)]="prod.right.expression" required spellcheck="false" 
 					list="variable-suggestions">
 
@@ -33,8 +33,8 @@
 				<div class='procedure-item'>
 				 <span>{{prod.type}} :::</span> 
 				 <input matInput class="tree-input" 
-					[style.width.ch]="prod.right.expression.length + 4"  
-					[(ngModel)]="prod.right.expression"
+					[style.width.ch]="prod.left.expression?.length + 4"  
+					[(ngModel)]="prod.left.expression"
 					required spellcheck="false">
 				</div>
 			</div>
@@ -50,14 +50,14 @@
 					<span>for each (</span> 
 			
 					<input matInput class="tree-input" 
-						[style.width.ch]="prod.left.expression.length + 4" 
+						[style.width.ch]="prod.left.expression?.length + 4" 
 							[(ngModel)]="prod.left.expression" 
 							spellcheck="false">
 			
 					<span style="margin: 0px 10px;">in</span>  
 			
 					<input matInput class="tree-input" 
-							[style.width.ch]="prod.right.expression.length + 4" 
+							[style.width.ch]="prod.right.expression?.length + 4" 
 							[(ngModel)]="prod.right.expression" spellcheck="false" list="variable-suggestions"> 
 					)
 				</div>
@@ -67,7 +67,7 @@
 				<div class='procedure-item'>
 					<span>while :::</span> 
 					<input matInput class="tree-input" 
-						[style.width.ch]="prod.right.expression.length + 4" 
+						[style.width.ch]="prod.right.expression?.length + 4" 
 						[(ngModel)]="prod.right.expression" 
 						spellcheck="false">
 				</div>
@@ -77,7 +77,7 @@
 				<div class='procedure-item'>
 					
 					<input matInput class="tree-input" 
-						[style.width.ch]="prod.left.expression.length + 4" 
+						[style.width.ch]="prod.left.expression?.length + 4" 
 						[(ngModel)]="prod.left.expression" required
 						spellcheck="false" list="variable-suggestions">
 					
@@ -113,7 +113,7 @@
 
 			<div *ngIf="prod.type == 'Comment'">
 				<input matInput class="tree-input comment" 
-						[style.width.ch]="prod.left.expression.length + 4" 
+						[style.width.ch]="prod.left.expression?.length + 4" 
 						[(ngModel)]="prod.left.expression" 
 						spellcheck="false">
 			</div>

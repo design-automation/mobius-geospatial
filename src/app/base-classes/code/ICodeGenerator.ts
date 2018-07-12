@@ -27,5 +27,5 @@ export interface ICodeGenerator{
 	get_code_port_input(port: InputPort): string;
 	get_code_port_output(port: OutputPort): string;
 
-	execute_node(node: IGraphNode, params: any, Modules: IModule, print: Function, globals?: any): any;
+	execute_node(node: IGraphNode, params: any, Modules: any, print: Function, globals?: any): any;
 };

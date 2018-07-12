@@ -298,7 +298,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 				if(prod_type == ProcedureTypes.IfControl){
 					statement = "if (" + procedure.left.expression + "){"
 				}
-				else if(prod_type == ProcedureTypes.IfControl){
+				else if(prod_type == ProcedureTypes.ElseIfControl){
 					statement = "else if (" + procedure.left.expression + "){"
 				}
 				else if(prod_type == ProcedureTypes.ElseControl){
@@ -341,7 +341,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 			}
 
 			// add procedure id to track failing
-			if(prodArr && prod_type != ProcedureTypes.ElseControl){ 
+			if(prodArr && prod_type != ProcedureTypes.ElseControl && prod_type !==ProcedureTypes.ElseIfControl){ 
 				code = "prodArr = (\'" + procedure["id"] + "\');\n" + code; 
 			};
 
@@ -364,7 +364,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 			return prepend + port.name + " = " + port.getDefaultValue(); 
 		}
 
-		execute_node(node: IGraphNode, params: any, __Mobius__Modules__: IModule[], print: Function, globals?: any): any{
+		execute_node(node: IGraphNode, params: any, __Mobius__Modules__: any, print: Function, globals?: any): any{
 
 			let prodArr: number = 1;
 			let str: string = "";

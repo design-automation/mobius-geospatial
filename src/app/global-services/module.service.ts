@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { AllModules as ModuleSet } from "../../assets/modules/AllModules";
-import { ModuleUtils } from "../base-classes/code/CodeModule"; 
+import { ModuleUtils, IModule } from "../base-classes/code/CodeModule"; 
 
 @Injectable()
 export class ModuleService {
 
-  public static modules: any[] = [];
+  public static modules: IModule[] = [];
+  public static MOB_MODS = {};
 
   constructor() { /*ModuleService.init()*/ }
 
@@ -22,6 +23,20 @@ export class ModuleService {
   get modules(){
     return ModuleService.modules;
   }
+
+  load_functions(){
+    let mObj = {};
+    ModuleSet.map((m) => { 
+        let fnsObj = {}; 
+        ModuleUtils.getFunctions(m).map((fn) => {
+          fnsObj[fn["name"]] = fn.def;
+        });
+
+        mObj[m["_name"]] = fnsObj;
+    });
+    ModuleService.MOB_MODS = mObj;
+  }
+
 
   load_modules(){
       // do something
@@ -55,7 +70,8 @@ export class ModuleService {
         return a["_name"].toLowerCase().localeCompare(b["_name"].toLowerCase());
       })
 
-      ModuleService.modules = module_set;
+      ModuleService.modules = module_set;     
+      this.load_functions();
   }
 
 }

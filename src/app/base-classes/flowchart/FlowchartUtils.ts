@@ -243,7 +243,7 @@ export class FlowchartUtils{
 	//
 	//	Executes the flowchart
 	//
-	public static execute(flowchart: IFlowchart, code_generator: ICodeGenerator, modules: IModule[], print: Function) :any{
+	public static execute(flowchart: IFlowchart, code_generator: ICodeGenerator, modules: any, print: Function) :any{
 
 		// set all nodes to status not executed
 		// future: cache results and set status based on changes
