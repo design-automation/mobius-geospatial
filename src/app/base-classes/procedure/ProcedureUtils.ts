@@ -12,11 +12,15 @@ export abstract class ProcedureUtils{
 		//todo: bad programming!
 		let id = n.id;
 		n.update(procedure, procedure.parent);
-		n.children = procedure.children.map((p)=> {
-			let pc:IProcedure = ProcedureUtils.copy_procedure(p);
-			pc.parent = n;
-			return pc;
-		});
+
+		if(procedure.children){
+			n.children = procedure.children.map((p)=> {
+				let pc:IProcedure = ProcedureUtils.copy_procedure(p);
+				pc.parent = n;
+				return pc;
+			});
+		}
+		
 		n.id = id;
 
 		return n;

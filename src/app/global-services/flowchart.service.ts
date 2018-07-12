@@ -97,12 +97,13 @@ export class FlowchartService {
         let data = CircularJSON.parse(fileString);
 
         this.update_code_generator(CodeFactory.getCodeGenerator(data["language"]));
-        this.update_modules();
+        //TODO: this.update_modules();
 
         flowchart = FlowchartReader.read_flowchart_from_data(data["flowchart"]);
         // TODO: select a node
       }
       catch(err){
+        console.log(err);
         this.$log.log(`Error loading file from string: ${err}`);
       }
 

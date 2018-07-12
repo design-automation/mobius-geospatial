@@ -37,7 +37,7 @@ export class Flowchart implements IFlowchart{
 		this._globals = [];
 		this._nodes = [];
 		this._edges = [];
-		
+
 		if(data){
 			this._name = data["_name"];
 			this._description = data["_description"];

@@ -22,6 +22,7 @@ export abstract class FlowchartReader{
 	    for(let node_data of nodes_data){	
 	    	let n: IGraphNode = NodeUtils.copy_node(node_data, true);
 	    	fc.nodes.push(n);
+	    	console.log(`Added ${n.name}`);
 	    	//FlowchartUtils.add_node_from_data(fc, node_data);
 	    }
 
@@ -37,6 +38,7 @@ export abstract class FlowchartReader{
 
 	    	if( valid_input && valid_output ){
 	    		FlowchartUtils.add_edge(fc, e_data.output_address, e_data.input_address);
+	    		console.log(`Created edge between ${in_node} and ${out_node}`)
 	    	}
 	    	else{
 	    		console.warn(`Skipped creating edge between ${in_node} and ${out_node}`)

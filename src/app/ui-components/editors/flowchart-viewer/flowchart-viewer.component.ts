@@ -105,7 +105,7 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
     private _ns: NodeLibraryService){}
 
   ngOnInit(){
-    this.subscriptions.push(this._fs.flowchart$.subscribe((fc) => { this.fc = fc; this.render_flowchart(); }));
+    this.subscriptions.push(this._fs.flowchart$.subscribe((fc) => { if(fc){ this.fc = fc; this.render_flowchart(); }  }));
     this.subscriptions.push(this._fs.node$.subscribe( (node) => this.active_node = node ));
   }
 

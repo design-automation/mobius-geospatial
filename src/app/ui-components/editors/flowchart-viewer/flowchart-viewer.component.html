@@ -19,7 +19,7 @@
 					(wheel)="scale($event)">
 					
 					<div id="flowchart__name">
-						{{fc.name || "No flowchart"}} with {{fc.nodes.length}} nodes and {{fc.edges.length}} edges
+						{{fc?.name || "No flowchart"}} with {{fc.nodes.length}} nodes and {{fc.edges.length}} edges
 					</div>
 
 				    <div class ="action-window">
