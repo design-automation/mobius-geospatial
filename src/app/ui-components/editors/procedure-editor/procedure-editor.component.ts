@@ -9,6 +9,7 @@ import {IProcedure, ProcedureFactory, ProcedureTypes, ProcedureUtils} from '../.
 
 import {FlowchartService} from '../../../global-services/flowchart.service';
 import {LayoutService} from '../../../global-services/layout.service';
+import {ConsoleService} from '../../../global-services/console.service';
 
 import {ModuleUtils} from "../../../base-classes/code/CodeModule";
 
@@ -49,11 +50,12 @@ export class ProcedureEditorComponent implements OnInit, OnDestroy{
   	copiedProd: IProcedure;
 
     constructor(private _fs: FlowchartService, 
-                private _ls: LayoutService){}
+                private _ls: LayoutService,
+                private $log: ConsoleService){}
 
     ngOnInit(){
       this.subscriptions.push(this._fs.node$.subscribe( (node) => {
-      		console.log("selected node updated");
+      		this.$log.log("Active node updated in Procedure Editor");
        		this.active_node = node;
       }));
     }
@@ -72,19 +74,6 @@ export class ProcedureEditorComponent implements OnInit, OnDestroy{
 	}
 
 
-	//
-	//
-	//
-	onMoveNode($event) {
-		// get previous parent
-		let moved_procedure: IProcedure = $event.node;
-		let to_procedure: IProcedure = $event.to.parent;
-		let moved_position: number = $event.to.index;
-
-		moved_procedure.parent = (to_procedure);
-
-	}
-
 	// ---- Cut / Copy / Paste Functions
 	@HostListener('window:keyup', ['$event'])
 		keyEvent(event: KeyboardEvent) {
@@ -102,21 +91,23 @@ export class ProcedureEditorComponent implements OnInit, OnDestroy{
 				switch (key){
 					case KEY_CODE.CUT:
 						this.copiedProd = ProcedureUtils.copy_procedure(this.active_node.active_procedure);
+						console.log(`Cut-Copied Producedure ${this.copiedProd.type}`);
 						this.delete_procedure();
+						break;
 					case KEY_CODE.COPY:
 						this.copiedProd = ProcedureUtils.copy_procedure(this.active_node.active_procedure);
+						console.log(`Copied Producedure ${this.copiedProd.type}`);
 						break;
 					case KEY_CODE.PASTE:
-						let parent: IProcedure = this.active_node.active_procedure.parent;
-						if(parent){
-							ProcedureUtils.add_child(parent, this.copiedProd);
+						console.log(`Attempting to copy procedure ${this.copiedProd.type}`);
+						if(this.copiedProd){
+							NodeUtils.add_procedure(this.active_node, this.copiedProd);
+							this.copiedProd = ProcedureUtils.copy_procedure(this.copiedProd);
 						}
 						else{
-							NodeUtils.add_procedure(this.active_node, this.copiedProd);
+							this.$log.log("Procedure to copy not found");
 						}
-						this.copiedProd = ProcedureUtils.copy_procedure(this.copiedProd);
 						break;
-
 				}
 			}
 			else if(shiftDown){
@@ -126,6 +117,10 @@ export class ProcedureEditorComponent implements OnInit, OnDestroy{
 				let position: number;
 				let procedure_above: IProcedure;
 				let procedure_below: IProcedure;
+
+				console.log(`Procedure Above: ${procedure_above}`);
+				console.log(`Procedure Below: ${procedure_below}`)
+
 				if(parent == undefined){
 					position = NodeUtils.get_child_position(this.active_node, child);
 					procedure_above = this.active_node.children[position - 1];
@@ -154,7 +149,6 @@ export class ProcedureEditorComponent implements OnInit, OnDestroy{
 						break;
 
 					case KEY_CODE.RIGHT:
-						console.log(procedure_above);
 						if(position-1 < 0) return;
 						
 						if(procedure_above.hasChildren == false) return;
@@ -194,6 +188,7 @@ export class ProcedureEditorComponent implements OnInit, OnDestroy{
 		}
 
 	delete_procedure(): void{
+		console.log(`Delete Procedure: ${this.active_node.active_procedure.type}`);
 		NodeUtils.delete_procedure(this.active_node)
 	}
 

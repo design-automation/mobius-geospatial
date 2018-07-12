@@ -1,188 +1,189 @@
-<div class = "full-container" 
-    draggable=true>
-	<!-- (mouseover)="_activeProcedure = prod" -->
-	<div class = "seg1" 
-		[class.print]="prod.print"
-		[class.error]="prod.error" 
-		[class.disabled]="!prod.enabled"
-		[class.selected] = "prod.id == active_procedure?.id"
-		(click)="onSelect($event)">
+<div [class.selected] = "prod.id == active_procedure?.id">
+	<div class = "full-container" 
+		*ngIf='prod'>
+		<!-- (mouseover)="_activeProcedure = prod" -->
+		<div class = "seg1" 
+			[class.print]="prod.print"
+			[class.error]="prod.error" 
+			[class.disabled]="!prod.enabled"
+			(click)="onSelect($event)">
 
-		<!-- template for data -->
-		<div *ngIf="prod.type == 'Data'"> 
-			<div class='procedure-item'>
-				<input matInput class="tree-input" 
-				[style.width.ch]="prod.left.expression?.length + 4" 
-				[(ngModel)]="prod.left.expression" 
-				required spellcheck="false" 
-				list="variable-suggestions">
+			<!-- template for data -->
+			<div *ngIf="prod.type == 'Data'"> 
+				<div class='procedure-item'>
+					<input matInput class="tree-input" 
+					[style.width.ch]="prod.left.expression?.length + 4" 
+					[(ngModel)]="prod.left.expression" 
+					required spellcheck="false" 
+					list="variable-suggestions">
 
-				<span class="equal">=</span>
+					<span class="equal">=</span>
 
-				<input matInput class="tree-input" 
-				[style.width.ch]="prod.right.expression.length + 4" 
-				[(ngModel)]="prod.right.expression" required spellcheck="false" 
-				list="variable-suggestions">
+					<input matInput class="tree-input" 
+					[style.width.ch]="prod.right.expression.length + 4" 
+					[(ngModel)]="prod.right.expression" required spellcheck="false" 
+					list="variable-suggestions">
 
+				</div>
 			</div>
-		</div>
-		
-		<div *ngIf="prod.type == 'If' || prod.type == 'ElseIf'">
-			<div class='procedure-item'>
-			 <span>{{prod.type}} :::</span> 
-			 <input matInput class="tree-input" 
-				[style.width.ch]="prod.right.expression.length + 4"  
-				[(ngModel)]="prod.right.expression"
-				required spellcheck="false">
+			
+			<div *ngIf="prod.type == 'If' || prod.type == 'ElseIf'">
+				<div class='procedure-item'>
+				 <span>{{prod.type}} :::</span> 
+				 <input matInput class="tree-input" 
+					[style.width.ch]="prod.right.expression.length + 4"  
+					[(ngModel)]="prod.right.expression"
+					required spellcheck="false">
+				</div>
 			</div>
-		</div>
 
-		<div *ngIf="prod.type == 'Else'">
-			<div class='procedure-item'>
-			 <span>{{prod.type}}</span> 
+			<div *ngIf="prod.type == 'Else'">
+				<div class='procedure-item'>
+				 <span>{{prod.type}}</span> 
+				</div>
 			</div>
-		</div>
-		
-		<div *ngIf="prod.type == 'For Loop'">
-			<div class='procedure-item'>
-				<span>for each (</span> 
-		
-				<input matInput class="tree-input" 
-					[style.width.ch]="prod.left.expression.length + 4" 
+			
+			<div *ngIf="prod.type == 'For Loop'">
+				<div class='procedure-item'>
+					<span>for each (</span> 
+			
+					<input matInput class="tree-input" 
+						[style.width.ch]="prod.left.expression.length + 4" 
+							[(ngModel)]="prod.left.expression" 
+							spellcheck="false">
+			
+					<span style="margin: 0px 10px;">in</span>  
+			
+					<input matInput class="tree-input" 
+							[style.width.ch]="prod.right.expression.length + 4" 
+							[(ngModel)]="prod.right.expression" spellcheck="false" list="variable-suggestions"> 
+					)
+				</div>
+			</div>
+
+			<div *ngIf="prod.type == 'While'">
+				<div class='procedure-item'>
+					<span>while :::</span> 
+					<input matInput class="tree-input" 
+						[style.width.ch]="prod.right.expression.length + 4" 
+						[(ngModel)]="prod.right.expression" 
+						spellcheck="false">
+				</div>
+			</div>
+			
+			<div *ngIf="prod.type == 'Action'">
+				<div class='procedure-item'>
+					
+					<input matInput class="tree-input" 
+						[style.width.ch]="prod.left.expression.length + 4" 
+						[(ngModel)]="prod.left.expression" required
+						spellcheck="false" list="variable-suggestions">
+					
+			
+					<span class="equal">=</span>
+			
+					<span class="module">{{prod.right.module.replace("_",  ".")}}</span>
+					.
+			
+					  <span class="function">{{prod.right.fn_name}}</span> 
+			
+					( <span *ngIf="prod.right.params.length>0">
+							<div class="param-container" 
+								*ngFor="let p of prod.right.params; let i=index">
+								
+								<input matInput class="tree-input" 
+								 [style.width.ch]="prod.right.params[i].value.length + 4" 
+								 [(ngModel)]="prod.right.params[i].value"
+								 required spellcheck="false" list="variable-suggestions">
+			
+								<span *ngIf='i<prod.right.params.length-1'>,</span>
+							</div> 
+						</span>	)
+					
+				</div>
+			</div>
+			
+			<div *ngIf="prod.type == 'Loop Break' || prod.type == 'Loop Continue'">
+				<div class='procedure-item'>
+					 {{prod.left.expression}}
+				</div>
+			</div> 
+
+			<div *ngIf="prod.type == 'Comment'">
+				<input matInput class="tree-input comment" 
+						[style.width.ch]="prod.left.expression.length + 4" 
 						[(ngModel)]="prod.left.expression" 
 						spellcheck="false">
-		
-				<span style="margin: 0px 10px;">in</span>  
-		
-				<input matInput class="tree-input" 
-						[style.width.ch]="prod.right.expression.length + 4" 
-						[(ngModel)]="prod.right.expression" spellcheck="false" list="variable-suggestions"> 
-				)
 			</div>
-		</div>
 
-		<div *ngIf="prod.type == 'While'">
-			<div class='procedure-item'>
-				<span>while :::</span> 
-				<input matInput class="tree-input" 
-					[style.width.ch]="prod.right.expression.length + 4" 
-					[(ngModel)]="prod.right.expression" 
-					spellcheck="false">
-			</div>
 		</div>
 		
-		<div *ngIf="prod.type == 'Action'">
-			<div class='procedure-item'>
-				
-				<input matInput class="tree-input" 
-					[style.width.ch]="prod.left.expression.length + 4" 
-					[(ngModel)]="prod.left.expression" required
-					spellcheck="false" list="variable-suggestions">
-				
-		
-				<span class="equal">=</span>
-		
-				<span class="module">{{prod.right.module.replace("_",  ".")}}</span>
-				.
-		
-				  <span class="function">{{prod.right.fn_name}}</span> 
-		
-				( <span *ngIf="prod.right.params.length>0">
-						<div class="param-container" 
-							*ngFor="let p of prod.right.params; let i=index">
-							
-							<input matInput class="tree-input" 
-							 [style.width.ch]="prod.right.params[i].value.length + 4" 
-							 [(ngModel)]="prod.right.params[i].value"
-							 required spellcheck="false" list="variable-suggestions">
-		
-							<span *ngIf='i<prod.right.params.length-1'>,</span>
-						</div> 
-					</span>	)
-				
-			</div>
-		</div>
-		
-		<div *ngIf="prod.type == 'Loop Break' || prod.type == 'Loop Continue'">
-			<div class='procedure-item'>
-				 {{prod.left.expression}}
-			</div>
-		</div> 
+		<ng-container *ngIf='false'>
+			<div class="seg2 copy_paste_actions"></div>
+			<div class = "seg2">
+				<div class="seg2btncontainer">
 
-		<div *ngIf="prod.type == 'Comment'">
-			<input matInput class="tree-input comment" 
-					[style.width.ch]="prod.left.expression.length + 4" 
-					[(ngModel)]="prod.left.expression" 
-					spellcheck="false">
-		</div>
-
-	</div>
-	
-	<ng-container *ngIf='false'>
-		<div class="seg2 copy_paste_actions"></div>
-		<div class = "seg2">
-			<div class="seg2btncontainer">
-
-				<div>
-					<!-- cut copy paste -->
-					<button mat-button 
-						matTooltip="Cut Procedure Line" tabindex="-1"
-						(click)="onAction($event, prod, 'cut')">
-						<mat-icon>content_cut</mat-icon>
-					</button>
-					<button mat-button 
-						matTooltip="Copy Procedure Line" tabindex="-1"
-						(click)="delete($event, prod, 'copy')">
-						<mat-icon>content_copy</mat-icon>
-					</button>
-					<button mat-button 
-						matTooltip="Paste Procedure" tabindex="-1"
-						(click)="onAction($event, prod, 'paste')">
-						<mat-icon>content_paste</mat-icon>
-					</button>
-				</div>
-				
-				<div *ngIf="prod.type != 'Else' && prod.type != 'If'">
-					<!-- other actions -->
-					<button mat-button 
-					    *ngIf="prod.type =='Action'"
-						(click)="onAction($event, prod, 'help')" tabindex="-1">
-						<mat-icon>help_outline</mat-icon>
-					</button>
-
-				   	<button mat-button
-				   		(click)="prod.print = !prod.print" 
-				   		matTooltip="Print value to console"
-				   		*ngIf="prod.type =='Action' || prod.type =='Data'" tabindex="-1">
-			    		<mat-icon>print</mat-icon>
-				    </button>
+					<div>
+						<!-- cut copy paste -->
+						<button mat-button 
+							matTooltip="Cut Procedure Line" tabindex="-1"
+							(click)="onAction($event, prod, 'cut')">
+							<mat-icon>content_cut</mat-icon>
+						</button>
+						<button mat-button 
+							matTooltip="Copy Procedure Line" tabindex="-1"
+							(click)="delete($event, prod, 'copy')">
+							<mat-icon>content_copy</mat-icon>
+						</button>
+						<button mat-button 
+							matTooltip="Paste Procedure" tabindex="-1"
+							(click)="onAction($event, prod, 'paste')">
+							<mat-icon>content_paste</mat-icon>
+						</button>
+					</div>
 					
-					<button mat-button 
-						(click)="prod.enabled = !prod.enabled" 
-						matTooltip="Enable/Disable Line" tabindex="-1">
-			    		<mat-icon>check_circle</mat-icon>
-				    </button>
-			        
-			        <button mat-button matTooltip="Delete Line" 
-			        	tabindex="-1"
-			       		(click)="onAction($event, prod, 'delete')">
-			    		<mat-icon>delete</mat-icon>
-				    </button>
-				    <!-- <button (click)="disableProcedure(prod, $event)">Disable</button>
-				    <button (click)="go($event)">Copy</button> -->
+					<div *ngIf="prod.type != 'Else' && prod.type != 'If'">
+						<!-- other actions -->
+						<button mat-button 
+						    *ngIf="prod.type =='Action'"
+							(click)="onAction($event, prod, 'help')" tabindex="-1">
+							<mat-icon>help_outline</mat-icon>
+						</button>
+
+					   	<button mat-button
+					   		(click)="prod.print = !prod.print" 
+					   		matTooltip="Print value to console"
+					   		*ngIf="prod.type =='Action' || prod.type =='Data'" tabindex="-1">
+				    		<mat-icon>print</mat-icon>
+					    </button>
+						
+						<button mat-button 
+							(click)="prod.enabled = !prod.enabled" 
+							matTooltip="Enable/Disable Line" tabindex="-1">
+				    		<mat-icon>check_circle</mat-icon>
+					    </button>
+				        
+				        <button mat-button matTooltip="Delete Line" 
+				        	tabindex="-1"
+				       		(click)="onAction($event, prod, 'delete')">
+				    		<mat-icon>delete</mat-icon>
+					    </button>
+					    <!-- <button (click)="disableProcedure(prod, $event)">Disable</button>
+					    <button (click)="go($event)">Copy</button> -->
+					</div>
 				</div>
 			</div>
-		</div>
-	</ng-container>
-</div>
+		</ng-container>
+	</div>
 
 
-<div class="children" *ngIf="prod.children.length > 0">
-	<app-procedure-item 
-		*ngFor="let child of prod.children" 
-		[prod]="child"
-		[root]="root"
-		[active_procedure]="active_procedure"
-		[level]="level+1">
-	</app-procedure-item>
+	<div class="children" *ngIf="prod.children.length > 0">
+		<app-procedure-item 
+			*ngFor="let child of prod.children" 
+			[prod]="child"
+			[root]="root"
+			[active_procedure]="active_procedure"
+			[level]="level+1">
+		</app-procedure-item>
+	</div>
 </div>

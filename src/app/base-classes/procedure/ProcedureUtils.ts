@@ -12,7 +12,13 @@ export abstract class ProcedureUtils{
 		//todo: bad programming!
 		let id = n.id;
 		n.update(procedure, procedure.parent);
+		n.children = procedure.children.map((p)=> {
+			let pc:IProcedure = ProcedureUtils.copy_procedure(p);
+			pc.parent = n;
+			return pc;
+		});
 		n.id = id;
+
 		return n;
 	}
 
@@ -43,14 +49,19 @@ export abstract class ProcedureUtils{
 	}
 
 	public static add_child(procedure: IProcedure, child: IProcedure): IProcedure{
-		if( procedure.hasChildren ){
-			procedure.children.push(child);
-			child.parent = procedure;
+		try{
+			if( procedure.hasChildren ){
+				procedure.children.push(child);
+				child.parent = procedure;
+			}
+			else{
+				throw Error("Cannot add child to this procedure");
+			}
 		}
-		else{
-			throw Error("Cannot add child to this procedure");
+		catch(ex){
+			console.log(`Error adding child ${ex}`);
 		}
-		
+
 		return procedure;
 	}
 

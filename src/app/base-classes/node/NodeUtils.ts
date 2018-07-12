@@ -94,44 +94,48 @@ export abstract class NodeUtils{
 	//	If there is no active procedure, adds it to the node directly
 	//
 	public static add_procedure(node: IGraphNode, procedure: IProcedure): IGraphNode{
-      
-		let active_procedure: IProcedure = node.active_procedure;
+      	try{
+			let active_procedure: IProcedure = node.active_procedure;
 
-		// TODO: Validate postioning of ElseIf / Else
-		// ElseIf / Else can only be placed after an If / ElseIf
+			// TODO: Validate postioning of ElseIf / Else
+			// ElseIf / Else can only be placed after an If / ElseIf
 
-		if(active_procedure){
+			if(active_procedure){
 
-			//
-			// If the active procedure is an If or ElseIf
-			// and the next procedure being added is ElseIf / Else
-			// the next procedure should be a sibling of the active procedure
-			//
-			let if_else_conditional: boolean = (active_procedure.type == ProcedureTypes.IfControl || active_procedure.type == ProcedureTypes.ElseIfControl)
-					&& (procedure.type == ProcedureTypes.ElseControl || procedure.type == ProcedureTypes.ElseIfControl);
+				//
+				// If the active procedure is an If or ElseIf
+				// and the next procedure being added is ElseIf / Else
+				// the next procedure should be a sibling of the active procedure
+				//
+				let if_else_conditional: boolean = (active_procedure.type == ProcedureTypes.IfControl || active_procedure.type == ProcedureTypes.ElseIfControl)
+						&& (procedure.type == ProcedureTypes .ElseControl || procedure.type == ProcedureTypes.ElseIfControl);
 
-			
-			// Check if the if-else conditional is true or the active procedure can't have children
-			if( if_else_conditional || !active_procedure.hasChildren ){
-		       if(active_procedure.parent){
-		           let parent: IProcedure = active_procedure.parent;
-		           let position: number = ProcedureUtils.get_child_position(parent, active_procedure);
-		           ProcedureUtils.add_child_at_position(parent, procedure, position+1);
-		       }
-		       else{
-		       	   let position: number = NodeUtils.get_child_position(node, active_procedure);
-		           NodeUtils.add_procedure_at_position(node, procedure, position + 1);
-		       }
+				
+				// Check if the if-else conditional is true or the active procedure can't have children
+				if( if_else_conditional || !active_procedure.hasChildren ){
+			       if(active_procedure.parent){
+			           let parent: IProcedure = active_procedure.parent;
+			           let position: number = ProcedureUtils.get_child_position(parent, active_procedure);
+			           ProcedureUtils.add_child_at_position(parent, procedure, position+1);
+			       }
+			       else{
+			       	   let position: number = NodeUtils.get_child_position(node, active_procedure);
+			           NodeUtils.add_procedure_at_position(node, procedure, position + 1);
+			       }
+				}
+				else{
+			    	active_procedure = ProcedureUtils.add_child(active_procedure, procedure);
+				}
 			}
 			else{
-		    	active_procedure = ProcedureUtils.add_child(active_procedure, procedure);
+				node.procedure.push(procedure);
 			}
-		}
-		else{
-			node.procedure.push(procedure);
-		}
 
-      	node.active_procedure = procedure;
+	      	node.active_procedure = procedure;
+      	}
+      	catch(ex){
+      		console.log(`Error adding procedure type ${procedure.type} to node ${node.name}`);
+      	}
 
       	// TODO: Lint the Node
 
@@ -157,6 +161,9 @@ export abstract class NodeUtils{
 		return -1;
 	}
 
+	//
+	// Deletes the active procedure in a node
+	//
 	public static delete_procedure(node): IGraphNode{
 
 		if(!node.active_procedure){
@@ -164,15 +171,33 @@ export abstract class NodeUtils{
 			return;
 		}
 
-		let index: number = 0;
-		let prodArr: IProcedure[] = node.active_procedure.parent ? node.active_procedure.parent.children : node.procedure;
-		for (const prod of prodArr){
-			if (prod.id == node.active_procedure.id){
-				prodArr.splice(index, 1);
-				node.active_procedure = index < prodArr.length ? prodArr[index] : undefined;
-				break;
+		let prod_to_delete: IProcedure = node.active_procedure;
+		let parent: IProcedure = prod_to_delete.parent;
+
+		if(parent){
+			// delete procedure from the oarent procedure
+			let position: number = ProcedureUtils.get_child_position(parent, prod_to_delete);
+			parent = ProcedureUtils.delete_child(parent, prod_to_delete);
+			if(position == 0){
+				node.active_procedure = parent;
 			}
-			index++;
+			else{
+				node.active_procedure = parent.children[position];
+			}
+			console.log(`Successfully deleted procedure-child`);
+		}
+		else{
+			// delete procedure from the node
+
+			let index:number = 0;
+			for (const prod of node.procedure){
+				if (prod.id == node.active_procedure.id){
+					node.procedure.splice(index, 1);
+					node.active_procedure = index < node.procedure.length ? node.procedure[index] : undefined;
+					break;
+				}
+				index++;
+			}
 		}
 
 		return node;
