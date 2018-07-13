@@ -12244,7 +12244,7 @@ var EViewer;
 /***/ "./src/app/ui-components/viewers/cesium-viewer/cesium-viewer.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"viewer\" style=\"position: absolute;\">\r\n\t<div class=\"container\">\r\n\t\t\r\n\t\t<div class=\"default\" *ngIf='port'>\r\n\t\t\tNo Model Available\r\n\t\t</div>\r\n\r\n\t\t<mobius-cesium [data]=\"port.value\" [mode]=\"mode\" \r\n\t\t\tstyle=\"width: 100%;\">\r\n\t\t</mobius-cesium>\r\n\r\n\r\n\t\t<button \r\n\t\t    class=\"btn--save\"\r\n\t\t    style=\"\"\r\n\t\t    *ngIf=\"gs_dummy_data\"\r\n\t\t\t(click)=\"save_geojson()\">\r\n\t\t\tSave GeoJSON\r\n\t\t</button>\r\n\t\r\n\t</div>\r\n</div>"
+module.exports = "<div class=\"viewer\" style=\"position: absolute;\">\r\n\t<div class=\"container\">\r\n\t\t\r\n\t\t<mobius-cesium [data]=\"port.value\" [mode]=\"mode\" \r\n\t\t\tstyle=\"width: 100%;\">\r\n\t\t</mobius-cesium>\r\n\r\n\r\n\t\t<button \r\n\t\t    class=\"btn--save\"\r\n\t\t    style=\"\"\r\n\t\t    *ngIf=\"gs_dummy_data\"\r\n\t\t\t(click)=\"save_geojson()\">\r\n\t\t\tSave GeoJSON\r\n\t\t</button>\r\n\t\r\n\t</div>\r\n</div>"
 
 /***/ }),
 
