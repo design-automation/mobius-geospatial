@@ -8,19 +8,24 @@ export abstract class ProcedureUtils{
 		if(!procedure) return;		
 
 		let n: IProcedure = ProcedureFactory.getProcedure(procedure.type || procedure["_type"]);
-
 		//todo: bad programming!
 		let id = n.id;
 		n.update(procedure, procedure.parent);
-
-		if(procedure.children){
-			n.children = procedure.children.map((p)=> {
+		
+		//
+		// TODO: Design Issue?
+		// If it is procedure data, the propery is _children
+		// If it is a procedure object, the property is children
+		//
+		let child_prop = procedure.children ? "children" : "_children";
+		if(procedure[child_prop]){
+			n.children = procedure[child_prop].map((p)=> {
 				let pc:IProcedure = ProcedureUtils.copy_procedure(p);
 				pc.parent = n;
 				return pc;
 			});
 		}
-		
+
 		n.id = id;
 
 		return n;

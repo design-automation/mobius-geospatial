@@ -33,8 +33,8 @@ export class StatementProcedure extends Procedure{
 	}
 
 	update(prodData: any, parent: IProcedure): void{
-		// do nothing
-		//console.error("This shouldn't be updated");
+		super.update(prodData, parent);
+		this._leftComponent.expression = prodData._leftComponent.expression;
 	}
 
 }

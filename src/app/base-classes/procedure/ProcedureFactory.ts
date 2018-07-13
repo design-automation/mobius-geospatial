@@ -53,27 +53,6 @@ export class ProcedureFactory{
 		}
 
 	}
-
-	static getProcedureFromData(procedureData: any, parent: IProcedure): IProcedure{
-		
-		let procedure: IProcedure;
-		
-		if(procedureData["_type"] == "Function"){
-			procedure = new FunctionProcedure({node: procedureData["node"], port: procedureData["port"]});
-		}
-		else{
-			procedure = ProcedureFactory.getProcedure(procedureData["_type"]);
-		}
-
-		procedure.update(procedureData, undefined); 
-
-		if(procedureData.children !== undefined){
-			for(let child=0; child < procedureData.children.length; child++){
-				let childProd :IProcedure = procedureData.children[child];
-				procedure.children.push(ProcedureFactory.getProcedureFromData(childProd, procedure));
-			}
-		}
-		return procedure;
-	}
+ 
 
 }

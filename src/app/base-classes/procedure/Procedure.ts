@@ -7,9 +7,7 @@ import {ICodeGenerator} from "../code/CodeModule";
 export abstract class Procedure implements IProcedure{
 
 	private _id: string; 
-
 	private _error: boolean;
-
 	private _level: number;
 
 	private _type: ProcedureTypes; 
@@ -32,7 +30,6 @@ export abstract class Procedure implements IProcedure{
 		this._level = 0;
 
 		this.hasChildren = hasChildren;
-		this._children = this._children;
 		this._error = false;
 	}	
 
@@ -147,9 +144,7 @@ export abstract class Procedure implements IProcedure{
 
 		this._parent = parent;
 		this._level = prodData._level;
-		
-		this.hasChildren = prodData.hasChildren;
-		this.children = [];
+		this._children = [];
 		this._error = false; 
 	}
 
