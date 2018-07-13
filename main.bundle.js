@@ -507,44 +507,7 @@ class CodeGeneratorJS extends __WEBPACK_IMPORTED_MODULE_0__CodeGenerator__["a" /
         let code_defs = [];
         let connector_lines = [];
         let code_block = "";
-        /*let nodeOrder: number[] = FlowchartUtils.get_node_order(flowchart);
-        let all_nodes: IGraphNode[] = flowchart.nodes;
-        let all_edges: IEdge[] = flowchart.edges;
-
-        // connector lines
-        for(let c=0; c < all_edges.length; c++){
-
-            let edge: IEdge = all_edges[c];
-            let input_node: IGraphNode = flowchart.nodes[edge.input_address[0]];
-            let output_node: IGraphNode = flowchart.nodes[edge.output_address[0]];
-
-            // create line assigning values
-            let code = this.get_code_connection_line(input_node, edge.input_address[1],
-                                                    output_node, edge.output_address[1]);
-
-            if(connector_lines[edge.input_address[0]] == undefined){
-                connector_lines[edge.input_address[0]] = [];
-            }
-
-            connector_lines[edge.input_address[0]].push(code);
-        }
-        
-        for(let c=0; c < nodeOrder.length; c++){
-            // check inputs connected to outputs
-            var nodeIndex = nodeOrder[c];
-            var node = all_nodes[nodeIndex];
-            code_defs.push(this.get_code_node(node, undefined, true));
-
-            if(connector_lines[nodeIndex] !== undefined){
-                fn_calls.push(connector_lines[nodeIndex].join("\n"));
-            }
-
-            fn_calls.push( this.get_code_function_call(node) );
-        }
-
-        code_block = code_defs.join(";\n\n") + "\n" + fn_calls.join("\n");*/
         return "Currently Unavailable";
-        //return code_block;
     }
     get_code_function_call(node, params, executionCode) {
         let fn_call = "";
@@ -798,7 +761,6 @@ class CodeGeneratorJS extends __WEBPACK_IMPORTED_MODULE_0__CodeGenerator__["a" /
         str += this.get_code_node(node, prodArr) + "\n" +
             this.get_code_function_call(node, [], true) + "\n" +
             "return " + node.name + ";";
-        console.log(print);
         console.log(`Generated Script: ${str}`);
         let result;
         try {
@@ -1064,6 +1026,7 @@ class FlowchartReader {
         let fc = new __WEBPACK_IMPORTED_MODULE_0__Flowchart__["a" /* Flowchart */](data);
         let nodes_data = data["_nodes"];
         let edges_data = data["_edges"];
+        console.log("original data: ", fc);
         /// adding all nodes
         for (let node_data of nodes_data) {
             let n = __WEBPACK_IMPORTED_MODULE_2__node_NodeModule__["b" /* NodeUtils */].copy_node(node_data, true);
@@ -1086,6 +1049,7 @@ class FlowchartReader {
                 console.warn(`Skipped creating edge between ${in_node} and ${out_node}`);
             }
         }
+        console.log("recreated fc: ", fc);
         return fc;
     }
 }
@@ -7619,11 +7583,21 @@ let DataService = class DataService {
         this.mode = mode;
     }
     setGsModel(model) {
+        delete this._jsonModel;
+        const json = this._jsonModel;
         this._jsonModel = model;
-        if (this._jsonModel === undefined) {
-            const viewer = new Cesium.Viewer(document.createElement("div"));
+        if (this._jsonModel !== undefined) {
+            this.clearAll();
         }
         this.sendMessage("model_update");
+    }
+    clearAll() {
+        delete this.hideElementArr;
+        delete this._HideNum;
+        delete this._ViData;
+        delete this._PuData;
+        delete this._index;
+        delete this._Filter;
     }
     getViewer() {
         return this.viewer;
@@ -7641,6 +7615,7 @@ let DataService = class DataService {
         return this.cesiumpromise;
     }
     setcesiumpromise(cesiumpromise) {
+        delete this.cesiumpromise;
         this.cesiumpromise = cesiumpromise;
     }
     gethideElementArr() {
@@ -7648,12 +7623,6 @@ let DataService = class DataService {
     }
     get_HideNum() {
         return this._HideNum;
-    }
-    getpoly_center() {
-        return this.poly_center;
-    }
-    setpoly_center(poly_center) {
-        this.poly_center = poly_center;
     }
     getmode() {
         return this.mode;
@@ -7664,49 +7633,190 @@ let DataService = class DataService {
     set_index(_index) {
         this._index = _index;
     }
+    /*public set_imageryViewModels() :void{
+      this._imageryViewModels.push(new Cesium.ProviderViewModel({
+       name : "Stamen Toner",
+       iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/stamenToner.png"),
+       tooltip : "A high contrast black and white map.\nhttp://www.maps.stamen.com/",
+       creationFunction : function() {
+           return Cesium.createOpenStreetMapImageryProvider({
+               url : "https://stamen-tiles.a.ssl.fastly.net/toner/",
+           });
+       },
+      }));
+      this._imageryViewModels.push(new Cesium.ProviderViewModel({
+       name : "Stamen Toner(Lite)",
+       iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/stamenToner.png"),
+       tooltip : "A high contrast black and white map(Lite).\nhttp://www.maps.stamen.com/",
+       creationFunction : function() {
+           return Cesium.createOpenStreetMapImageryProvider({
+               url : "https://stamen-tiles.a.ssl.fastly.net/toner-lite/",
+           });
+       },
+      }));
+      this._imageryViewModels.push(new Cesium.ProviderViewModel({
+       name : "Terrain(Standard)",
+       iconUrl : Cesium.buildModuleUrl("Widgets/Images/TerrainProviders/CesiumWorldTerrain.png"),
+       tooltip : "A high contrast black and white map(Standard).\nhttp://www.maps.stamen.com/",
+       creationFunction : function() {
+           return Cesium.createOpenStreetMapImageryProvider({
+               url : "https://stamen-tiles.a.ssl.fastly.net/terrain/",
+           });
+       },
+      }));
+      this._imageryViewModels.push(new Cesium.ProviderViewModel({
+       name : "Terrain(Background)",
+       iconUrl : Cesium.buildModuleUrl("Widgets/Images/TerrainProviders/CesiumWorldTerrain.png"),
+       tooltip : "A high contrast black and white map(Background).\nhttp://www.maps.stamen.com/",
+       creationFunction : function() {
+           return Cesium.createOpenStreetMapImageryProvider({
+               url : "https://stamen-tiles.a.ssl.fastly.net/terrain-background/",
+           });
+       },
+      }));
+      this._imageryViewModels.push(new Cesium.ProviderViewModel({
+       name : "Open\u00adStreet\u00adMap",
+       iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/openStreetMap.png"),
+       tooltip : "OpenStreetMap (OSM) is a collaborative project to create a free editable \
+               map of the world.\nhttp://www.openstreetmap.org",
+       creationFunction : function() {
+           return Cesium.createOpenStreetMapImageryProvider({
+               url : "https://a.tile.openstreetmap.org/",
+           });
+       },
+      }));
+  
+      this._imageryViewModels.push(new Cesium.ProviderViewModel({
+       name : "Earth at Night",
+       iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/earthAtNight.png"),
+       tooltip : "The lights of cities and villages trace the outlines of civilization \
+                   in this global view of the Earth at night as seen by NASA/NOAA\'s Suomi NPP satellite.",
+       creationFunction : function() {
+           return new Cesium.IonImageryProvider({ assetId: 3812 });
+       },
+      }));
+  
+      this._imageryViewModels.push(new Cesium.ProviderViewModel({
+       name : "Natural Earth\u00a0II",
+       iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/naturalEarthII.png"),
+       tooltip : "Natural Earth II, darkened for contrast.\nhttp://www.naturalearthdata.com/",
+       creationFunction : function() {
+           return Cesium.createTileMapServiceImageryProvider({
+               url : Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII"),
+           });
+       },
+      }));
+  
+      this._imageryViewModels.push(new Cesium.ProviderViewModel({
+       name : "Blue Marble",
+       iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/blueMarble.png"),
+       tooltip : "Blue Marble Next Generation July, 2004 imagery from NASA.",
+       creationFunction : function() {
+           return new Cesium.IonImageryProvider({ assetId: 3845 });
+       },
+      }));
+    }
+    public get_imageryViewModels(): any[] {
+      return this._imageryViewModels;
+    }*/
+    set_Imagery(_Imagery) {
+        this._Imagery = _Imagery;
+    }
+    get_Imagery() {
+        return this._Imagery;
+    }
     getValue(model) {
         if (model !== undefined) {
-            const propertyNames = Object.keys(model["features"][0].properties);
+            let propertyName = Object.keys(model["features"][0].properties);
+            let feature_instance;
+            let property = propertyName;
+            if (model["features"].length > 1) {
+                for (let i = 1; i < model["features"].length; i++) {
+                    property = property.concat(Object.keys(model["features"][i].properties));
+                }
+            }
+            propertyName = property.reduce(function (a, b) {
+                if (a.indexOf(b) < 0)
+                    a.push(b);
+                return a;
+            }, []);
+            /*for(let i = 0 ;i<model["features"].length;i++){
+              if(model["features"][i].geometry.type === "Polygon"){
+                 propertyName= Object.keys(model["features"][i].properties);
+                 feature_instance = model["features"][i];
+                break;
+              }
+            }*/
+            propertyName.sort();
+            propertyName.unshift("None");
+            const propertyNames = propertyName.filter(function (value) {
+                return value != 'TYPE' && value != 'COLOR' && value != 'HEIGHT' && value != 'EXTRUHEIGHT';
+            });
             const _ColorValue = propertyNames[0];
-            propertyNames.sort();
-            propertyNames.unshift("None");
-            const feature_instance = model["features"][0];
+            for (let i = 0; i < model["features"].length; i++) {
+                if (model["features"][i].geometry.type === "Polygon" || model["features"][i].geometry.type === "MultiPolygon") {
+                    //propertyName= Object.keys(model["features"][i].properties);
+                    feature_instance = model["features"][i];
+                    break;
+                }
+            }
             const _HeightKey = propertyNames.filter(function (prop_name) {
                 const value = feature_instance.properties[prop_name];
                 return (typeof (value) === "number");
             });
-            const _HeightValue = _HeightKey[0];
             _HeightKey.sort();
             _HeightKey.unshift("None");
+            const _HeightValue = _HeightKey[0];
             const promise = this.cesiumpromise;
             const _Heighttexts = [];
             const _Colortexts = [];
+            const _indexArr = [];
+            const self = this;
             promise.then(function (dataSource) {
                 const entities = dataSource.entities.values;
                 for (const entity of entities) {
-                    if (entity.properties[_HeightValue] !== undefined) {
-                        if (entity.properties[_HeightValue]._value !== " ") {
-                            if (_Heighttexts.length === 0) {
-                                _Heighttexts[0] = entity.properties[_HeightValue]._value;
-                            }
-                            else {
-                                if (_Heighttexts.indexOf(entity.properties[_HeightValue]._value) === -1) {
-                                    _Heighttexts.push(entity.properties[_HeightValue]._value);
+                    if (entity.properties["TYPE"] === undefined || entity.properties["TYPE"]._value !== "STATIC") {
+                        if (entity.properties[_HeightValue] !== undefined) {
+                            if (entity.properties[_HeightValue]._value !== " ") {
+                                if (_Heighttexts.length === 0) {
+                                    _Heighttexts[0] = entity.properties[_HeightValue]._value;
+                                }
+                                else {
+                                    if (_Heighttexts.indexOf(entity.properties[_HeightValue]._value) === -1) {
+                                        _Heighttexts.push(entity.properties[_HeightValue]._value);
+                                    }
                                 }
                             }
                         }
+                        if (entity.properties[_ColorValue] !== undefined) {
+                            if (entity.properties[_ColorValue]._value !== " ") {
+                                if (_Colortexts.length === 0) {
+                                    _Colortexts[0] = entity.properties[_ColorValue]._value;
+                                }
+                                else {
+                                    if (_Colortexts.indexOf(entity.properties[_ColorValue]._value) === -1) {
+                                        _Colortexts.push(entity.properties[_ColorValue]._value);
+                                    }
+                                }
+                            }
+                        }
+                        _indexArr.push(entities.indexOf(entity));
                     }
-                    if (entity.properties[_ColorValue] !== undefined) {
-                        if (entity.properties[_ColorValue]._value !== " ") {
-                            if (_Colortexts.length === 0) {
-                                _Colortexts[0] = entity.properties[_ColorValue]._value;
-                            }
-                            else {
-                                if (_Colortexts.indexOf(entity.properties[_ColorValue]._value) === -1) {
-                                    _Colortexts.push(entity.properties[_ColorValue]._value);
-                                }
-                            }
-                        }
+                    else {
+                        entity.polygon.height = entity.properties["HEIGHT"];
+                        entity.polygon.extrudedHeight = entity.properties["EXTRUHEIGHT"];
+                        const ColorValue = entity.properties["COLOR"]._value;
+                        entity.polygon.material = Cesium.Color.fromBytes(ColorValue[0], ColorValue[1], ColorValue[2], ColorValue[3]);
+                    }
+                    if (entity.polygon !== undefined) {
+                        entity.polygon.outlineColor = Cesium.Color.Black;
+                    }
+                    if (entity.billboard !== undefined) {
+                        entity.billboard = undefined;
+                        entity.point = new Cesium.PointGraphics({
+                            color: Cesium.Color.BLUE,
+                            pixelSize: 10,
+                        });
                     }
                 }
             });
@@ -7716,7 +7826,7 @@ let DataService = class DataService {
             const _MaxHeight = Math.max.apply(Math, _Heighttexts);
             const _Filter = [];
             const _HideNum = [];
-            this.getViData(propertyNames, _Colortexts.sort(), _ColorValue, _MinColor, _MaxColor, false, _HeightKey, _Heighttexts.sort(), _HeightValue, _MinHeight, _MaxHeight, 1, false, false, _Filter, _HideNum);
+            this.getViData(propertyNames, _Colortexts.sort(), _ColorValue, _MinColor, _MaxColor, false, _HeightKey, _Heighttexts.sort(), _HeightValue, _MinHeight, _MaxHeight, 1, false, false, _Filter, _HideNum, _indexArr);
         }
     }
     get_ViData() {
@@ -7745,6 +7855,7 @@ let DataService = class DataService {
             const _ceisumData = [];
             const _propertyNames = [];
             const _HideNum = [];
+            const _indexArr = [];
             if (cesiumData["colour"] !== undefined) {
                 if (cesiumData["colour"]["descr"] !== undefined) {
                     _ColorDescr = cesiumData["colour"]["descr"];
@@ -7798,6 +7909,7 @@ let DataService = class DataService {
             const promise = this.cesiumpromise;
             const _Heighttexts = [];
             const _Colortexts = [];
+            const self = this;
             promise.then(function (dataSource) {
                 const entities = dataSource.entities.values;
                 for (const entity of entities) {
@@ -7825,6 +7937,17 @@ let DataService = class DataService {
                             }
                         }
                     }
+                    if (entity.polygon !== undefined) {
+                        entity.polygon.outlineColor = Cesium.Color.Black;
+                    }
+                    if (entity.billboard !== undefined) {
+                        entity.billboard = undefined;
+                        entity.point = new Cesium.PointGraphics({
+                            color: Cesium.Color.BLUE,
+                            pixelSize: 10,
+                        });
+                    }
+                    _indexArr.push(entities.indexOf(entity));
                 }
             });
             if (cesiumData["filters"] !== undefined) {
@@ -7876,7 +7999,7 @@ let DataService = class DataService {
                 this._Filter = [];
                 this._HideNum = [];
             }
-            this.getPuData(_ColorDescr, _propertyNames, _Colortexts.sort(), _ColorValue, _MinColor, _MaxColor, _ColorInvert, _HeightDescr, _HeightKey, _Heighttexts.sort(), _HeightValue, _MinHeight, _MaxHeight, _HeightScale, _HeightInvert, _HeightLine, this._Filter, this._HideNum);
+            this.getPuData(_ColorDescr, _propertyNames, _Colortexts.sort(), _ColorValue, _MinColor, _MaxColor, _ColorInvert, _HeightDescr, _HeightKey, _Heighttexts.sort(), _HeightValue, _MinHeight, _MaxHeight, _HeightScale, _HeightInvert, _HeightLine, this._Filter, this._HideNum, _indexArr);
         }
     }
     Initial(_HideValue) {
@@ -7908,19 +8031,19 @@ let DataService = class DataService {
     set_PuData(_PuData) {
         this._PuData = _PuData;
     }
-    getViData(_ColorProperty, _ColorText, _ColorKey, _ColorMin, _ColorMax, _ColorInvert, _ExtrudeProperty, _ExtrudeText, _ExturdeValue, _ExtrudeMin, _ExtrudeMax, _Scale, _Invert, _HeightChart, _Filter, _HideNum) {
+    getViData(_ColorProperty, _ColorText, _ColorKey, _ColorMin, _ColorMax, _ColorInvert, _ExtrudeProperty, _ExtrudeText, _ExturdeValue, _ExtrudeMin, _ExtrudeMax, _Scale, _Invert, _HeightChart, _Filter, _HideNum, _indexArr) {
         this._ViData = { ColorProperty: _ColorProperty, ColorText: _ColorText, ColorKey: _ColorKey,
             ColorMin: _ColorMin, ColorMax: _ColorMax, ColorInvert: _ColorInvert,
             ExtrudeProperty: _ExtrudeProperty, ExtrudeText: _ExtrudeText, ExtrudeKey: _ExturdeValue,
             ExtrudeMin: _ExtrudeMin, ExtrudeMax: _ExtrudeMax, Scale: _Scale, Invert: _Invert,
-            HeightChart: _HeightChart, Filter: _Filter, HideNum: _HideNum };
+            HeightChart: _HeightChart, Filter: _Filter, HideNum: _HideNum, indexArr: _indexArr };
     }
-    getPuData(_ColorDescr, _ColorProperty, _ColorText, _ColorKey, _ColorMin, _ColorMax, _ColorInvert, _ExtrudeDescr, _ExtrudeProperty, _ExtrudeText, _ExturdeValue, _ExtrudeMin, _ExtrudeMax, _Scale, _Invert, _HeightChart, _Filter, _HideNum) {
+    getPuData(_ColorDescr, _ColorProperty, _ColorText, _ColorKey, _ColorMin, _ColorMax, _ColorInvert, _ExtrudeDescr, _ExtrudeProperty, _ExtrudeText, _ExturdeValue, _ExtrudeMin, _ExtrudeMax, _Scale, _Invert, _HeightChart, _Filter, _HideNum, _indexArr) {
         this._PuData = { ColorDescr: _ColorDescr, ColorProperty: _ColorProperty, ColorText: _ColorText,
             ColorKey: _ColorKey, ColorMin: _ColorMin, ColorMax: _ColorMax, ColorInvert: _ColorInvert,
             ExtrudeDescr: _ExtrudeDescr, ExtrudeProperty: _ExtrudeProperty, ExtrudeText: _ExtrudeText,
             ExtrudeKey: _ExturdeValue, ExtrudeMin: _ExtrudeMin, ExtrudeMax: _ExtrudeMax,
-            Scale: _Scale, Invert: _Invert, HeightChart: _HeightChart, Filter: _Filter, HideNum: _HideNum };
+            Scale: _Scale, Invert: _Invert, HeightChart: _HeightChart, Filter: _Filter, HideNum: _HideNum, indexArr: _indexArr };
     }
 };
 DataService = __decorate([
@@ -7934,14 +8057,14 @@ DataService = __decorate([
 /***/ "./src/app/mobius-cesium/mobius-cesium.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"mobiuscesium\" style=\"height: 100%\">\r\n\t<cesium-viewer></cesium-viewer>\r\n\t<div id=\"Toggle\" (click)=\"toggleSlider()\" ><span style=\"vertical-align: middle;\">▹</span></div>\r\n\t<div id=\"slide-nav\"  [@slide_in_out]=\"slider_state\" style=\"position: absolute;z-index: 101;top:0px;height: 100%\">\r\n  \t\t<app-setting ></app-setting>\r\n\t</div>\r\n\t\r\n\t\r\n\t\r\n</div>\r\n"
+module.exports = "<div id=\"mobiuscesium\" style=\"height: 100%\">\r\n\t<cesium-viewer></cesium-viewer>\r\n\t<div id=\"Toggle\" (click)=\"toggleSlider()\" ><span style=\"vertical-align: middle;\">▹</span></div>\r\n\t<div id=\"slide-nav\"  [@slide_in_out]=\"slider_state\" style=\"position: absolute;z-index: 101;top:0px;height: 100%\">\r\n  \t\t<app-setting ></app-setting>\r\n\t</div>\r\n\r\n</div>\r\n"
 
 /***/ }),
 
 /***/ "./src/app/mobius-cesium/mobius-cesium.component.scss":
 /***/ (function(module, exports) {
 
-module.exports = "@import url(\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\");\n@font-face {\n  font-family: \"FontAwesome\"; }\n.font-awesome-hand {\n  font-family: FontAwesome; }\n.font-awesome-hand::after {\n  font-family: FontAwesome; }\n#mobiuscesium {\n  height: 101%;\n  font-family: sans-serif !important;\n  margin: 0px !important;\n  padding: 0px !important;\n  font-size: 14px; }\n#button {\n  position: absolute;\n  z-index: 99; }\n#Toggle {\n  position: absolute;\n  top: calc(50% - 30px);\n  z-index: 200;\n  width: 30px;\n  height: 70px;\n  border-top: 1px solid gray;\n  border-right: 1px solid gray;\n  border-bottom: 1px solid gray;\n  border-radius: 4px;\n  background-color: rgba(20, 20, 20, 0.5);\n  color: #ddd;\n  text-align: center;\n  font-size: 32px;\n  line-height: 70px;\n  cursor: pointer; }\n"
+module.exports = "@import url(\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\");\n@font-face {\n  font-family: \"FontAwesome\"; }\n.font-awesome-hand {\n  font-family: FontAwesome; }\n.font-awesome-hand::after {\n  font-family: FontAwesome; }\n#mobiuscesium {\n  height: 101%;\n  font-family: sans-serif !important;\n  margin: 0px !important;\n  padding: 0px !important;\n  font-size: 14px; }\n#button {\n  position: absolute;\n  z-index: 99; }\n#Toggle {\n  position: absolute;\n  top: calc(50% - 30px);\n  z-index: 200;\n  width: 30px;\n  height: 70px;\n  border-top: 1px solid gray;\n  border-right: 1px solid gray;\n  border-bottom: 1px solid gray;\n  background-color: rgba(20, 20, 20, 0.5);\n  color: #ddd;\n  text-align: center;\n  font-size: 32px;\n  line-height: 70px;\n  cursor: pointer; }\n"
 
 /***/ }),
 
@@ -8063,12 +8186,14 @@ MobiuscesiumComponent = __decorate([
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__setting_visualise_component__ = __webpack_require__("./src/app/mobius-cesium/setting/visualise.component.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__setting_attributes_copmponent__ = __webpack_require__("./src/app/mobius-cesium/setting/attributes.copmponent.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__setting_publish_component__ = __webpack_require__("./src/app/mobius-cesium/setting/publish.component.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__setting_display_copmponent__ = __webpack_require__("./src/app/mobius-cesium/setting/display.copmponent.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+
 
 
 
@@ -8105,15 +8230,16 @@ MobiusCesium = MobiusCesium_1 = __decorate([
             __WEBPACK_IMPORTED_MODULE_7__angular_platform_browser__["a" /* BrowserModule */],
             __WEBPACK_IMPORTED_MODULE_9__angular_material_tooltip__["a" /* MatTooltipModule */],
             __WEBPACK_IMPORTED_MODULE_10__angular_material_slider__["a" /* MatSliderModule */],
-            __WEBPACK_IMPORTED_MODULE_11__angular_forms__["c" /* FormsModule */],
+            __WEBPACK_IMPORTED_MODULE_11__angular_forms__["c" /* FormsModule */]
         ],
         exports: [__WEBPACK_IMPORTED_MODULE_2__mobius_cesium_component__["a" /* MobiuscesiumComponent */]],
         declarations: [__WEBPACK_IMPORTED_MODULE_2__mobius_cesium_component__["a" /* MobiuscesiumComponent */],
             __WEBPACK_IMPORTED_MODULE_3__viewer_viewer_component__["a" /* ViewerComponent */],
             __WEBPACK_IMPORTED_MODULE_12__setting_setting_component__["a" /* SettingComponent */],
-            __WEBPACK_IMPORTED_MODULE_13__setting_visualise_component__["a" /* VisualiseComponent */],
-            __WEBPACK_IMPORTED_MODULE_14__setting_attributes_copmponent__["a" /* AttributesComponent */],
-            __WEBPACK_IMPORTED_MODULE_15__setting_publish_component__["a" /* PublishComponent */]],
+            __WEBPACK_IMPORTED_MODULE_13__setting_visualise_component__["a" /* DataComponent */],
+            __WEBPACK_IMPORTED_MODULE_14__setting_attributes_copmponent__["a" /* SelectComponent */],
+            __WEBPACK_IMPORTED_MODULE_15__setting_publish_component__["a" /* PublishComponent */],
+            __WEBPACK_IMPORTED_MODULE_16__setting_display_copmponent__["a" /* DisplayComponent */]],
         providers: [__WEBPACK_IMPORTED_MODULE_4__data_data_service__["a" /* DataService */]],
     })
 ], MobiusCesium);
@@ -8126,14 +8252,14 @@ var MobiusCesium_1;
 /***/ "./src/app/mobius-cesium/setting/attributes.component.css":
 /***/ (function(module, exports) {
 
-module.exports = "/deep/.mat-tab-label, /deep/.mat-tab-label-active{\r\n  min-width: 60px!important;\r\n  padding: 3px!important;\r\n  margin: 3px!important;\r\n  color:#ddd !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-label{\r\n  height: 30px !important;\r\n  width: 60px !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-labels{\r\n  background-color: rgba(20,20,20,0.5) !important;\r\n}\r\n/deep/.mat-tab-header{\r\n  width: 700px !important;\r\n}\r\n/deep/.mat-tab-header-pagination-controls-enabled{\r\n  display: none !important;\r\n}\r\n/deep/.mat-ink-bar{\r\n  background-color: #395d73 !important;\r\n}\r\n/deep/.mat-tab{\r\n  min-width: 30px !important;\r\n}\r\n/deep/.mat-tab-body-content{\r\n  overflow: hidden !important;\r\n}\r\n/deep/.mat-header{\r\n  -webkit-box-orient: horizontal;\r\n  -webkit-box-direction: normal;\r\n      -ms-flex-direction: row;\r\n          flex-direction: row;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  margin-left: 0px;\r\n  color:#395d73;\r\n  border: 0;\r\n  height: 20px;\r\n  background-color: rgba(20,20,20,0.5) !important;\r\n}\r\n/deep/.mat-tab-body-wrapper{\r\n  height:100% !important;\r\n\r\n}\r\n/deep/split-gutter{\r\n  background-color:rgb(138, 168, 192) !important;\r\n}\r\n/deep/.mat-accent .mat-slider-thumb {\r\n    background-color: #395d73 !important;\r\n    cursor: -webkit-grab;\r\n}\r\n/deep/.mat-slider-track-fill{\r\n  background-color: #395d73 !important;\r\n}\r\n/deep/.mat-slider-thumb-label-text {\r\n    color: #395d73 !important;\r\n    font-size: 12px !important;\r\n}\r\n/deep/.mat-slider-thumb-label{\r\n    height: 15px !important;\r\n    width: 15px !important;\r\n    top: -20px !important;\r\n    right: -7px !important;\r\n    background-color: white !important;\r\n    border: 1px solid #395d73 !important;\r\n}\r\n/deep/.mat-slider-track-background{\r\n  background-color: #ddd !important;\r\n}\r\n.mat-slider{\r\n    width: 150px !important;\r\n}\r\n.cesium-button {\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  color: #395D73;\r\n  fill: #395D73;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  height:22px;\r\n  font-family:sans-serif !important;\r\n  background: #F1F1F1;\r\n}\r\n.cesium-button-select{\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  color: #395D73;\r\n  fill: #395D73;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  height:22px;\r\n  font-family:sans-serif !important;\r\n  background: #F1F1F1;\r\n}\r\n.cesium-option{\r\n  background-color: #F1F1F1;\r\n  /*opacity: 0.8;*/\r\n  color: #395D73;\r\n  border: 1px solid #8AA8C0;\r\n}\r\nhr {\r\n  display: block;\r\n  height: 1px;\r\n  border: 0;\r\n  border-top: 1px solid #ddd !important;\r\n  padding: 0; \r\n  color:#ddd !important;\r\n  width: 100%;\r\n  background-color: #ddd !important;\r\n}\r\n\r\n"
+module.exports = "/deep/.mat-tab-label, /deep/.mat-tab-label-active{\r\n  min-width: 60px!important;\r\n  padding: 3px!important;\r\n  margin: 3px!important;\r\n  color:#D3D3D3 !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-label{\r\n  height: 30px !important;\r\n  width: 60px !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-labels{\r\n  background-color: rgba(20,20,20,0.9) !important;\r\n}\r\n/deep/.mat-tab-header{\r\n  width: 700px !important;\r\n}\r\n/deep/.mat-tab-header-pagination-controls-enabled{\r\n  display: none !important;\r\n}\r\n/deep/.mat-ink-bar{\r\n  background-color: #395d73 !important;\r\n}\r\n/deep/.mat-tab{\r\n  min-width: 30px !important;\r\n}\r\n/deep/.mat-tab-body-content{\r\n  overflow: hidden !important;\r\n}\r\n/deep/.mat-header{\r\n  -webkit-box-orient: horizontal;\r\n  -webkit-box-direction: normal;\r\n      -ms-flex-direction: row;\r\n          flex-direction: row;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  margin-left: 0px;\r\n  color:#395d73;\r\n  border: 0;\r\n  height: 20px;\r\n  background-color: rgba(20,20,20,0.9) !important;\r\n}\r\n/deep/.mat-tab-body-wrapper{\r\n  height:100% !important;\r\n\r\n}\r\n/deep/split-gutter{\r\n  background-color:rgb(138, 168, 192) !important;\r\n}\r\n/deep/.mat-accent .mat-slider-thumb {\r\n    background-color: #8AA8C0 !important;\r\n    cursor: -webkit-grab;\r\n}\r\n/deep/.mat-slider-thumb{\r\n  width: 5px !important;\r\n  right: -5px !important;\r\n}\r\n/deep/.mat-slider-track-fill{\r\n  background-color: #F0BFA0 !important;\r\n}\r\n/deep/.mat-slider-thumb-label-text {\r\n    color: #395d73 !important;\r\n    font-size: 12px !important;\r\n}\r\n/deep/.mat-slider-thumb-label{\r\n    height: 15px !important;\r\n    width: 15px !important;\r\n    top: -20px !important;\r\n    right: -7px !important;\r\n    background-color: white !important;\r\n    border: 1px solid #395d73 !important;\r\n}\r\n/deep/.mat-slider-track-background{\r\n  background-color: #D3D3D3 !important;\r\n}\r\n.mat-slider{\r\n    width: 150px !important;\r\n}\r\n.cesium-button {\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  color: #D3D3D3;\r\n  fill: #8AA8C0;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  font-family:sans-serif !important;\r\n  background: transparent;\r\n}\r\n.cesium-button-select{\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  fill: #8AA8C0;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  font-family:sans-serif !important;\r\n  color: #D3D3D3;\r\n  background: transparent;\r\n}\r\n.cesium-option{\r\n  background-color: #F1F1F1;\r\n  /*opacity: 0.8;*/\r\n  color: #8AA8C0;\r\n  border: 1px solid #8AA8C0;\r\n}\r\nhr {\r\n  display: block;\r\n  height: 1px;\r\n  border: 0;\r\n  border-top: 1px solid #D3D3D3 !important;\r\n  padding: 0; \r\n  color:#D3D3D3 !important;\r\n  width: 100%;\r\n  background-color: #D3D3D3 !important;\r\n}\r\n\r\n"
 
 /***/ }),
 
 /***/ "./src/app/mobius-cesium/setting/attributes.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"AttribsView\"  style=\"background-color: rgba(20,20,20,0.5);height: 100%;overflow-y:overlay;\"  >\r\n\t<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\">\r\n\t  <tr >\r\n\t    <th style=\"font-size: 10px;font-weight: normal;width: 85px;\"><div style=\"width: 85px;height:16px;background: #395D73;color:white;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">ID</div></th>\r\n\t    <th style=\"font-size: 10px;font-weight: normal;width: 85px\"><div matTooltip={{ID}} style=\"width: 85px;height:16px;background: #395D73;color:white;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{ID}}</div></th>\r\n\t  </tr>\r\n\t</table>\r\n\t<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\">\r\n\t  <tr *ngFor=\"let Property of _Properties\">\r\n\t    <th style=\"font-size: 10px;font-weight: normal;color:#ddd ;width: 85px;height: 14px\"><div matTooltip={{Property.Name}} style=\"width: 85px;height:14px;text-align: left;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{Property.Name}}</div></th>\r\n\t    <th style=\"font-size: 10px;font-weight: normal;color:#ddd ;width: 85px;height: 14px\"><div matTooltip={{Property.Value}} style=\"width: 85px;height:14px;text-align: left;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{Property.Value}}</div></th>\r\n\t  </tr>\r\n\t</table>\r\n</div>\r\n  "
+module.exports = "<div id=\"AttribsView\"  style=\"background-color: rgba(20,20,20,0.9);height: 100%;overflow-y:overlay;\"  >\r\n\t<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\">\r\n\t  <tr >\r\n\t    <th style=\"font-size: 10px;font-weight: normal;width: 85px;\"><div style=\"width: 85px;height:16px;background: #395D73;color:white;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">ID</div></th>\r\n\t    <th style=\"font-size: 10px;font-weight: normal;width: 85px\"><div matTooltip={{ID}} style=\"width: 85px;height:16px;background: #395D73;color:white;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{ID}}</div></th>\r\n\t  </tr>\r\n\t</table>\r\n\t<table border=\"1\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\">\r\n\t  <tr *ngFor=\"let Property of _Properties\">\r\n\t    <th style=\"font-size: 10px;font-weight: normal;color:#D3D3D3 ;width: 85px;height: 14px\"><div matTooltip={{Property.Name}} style=\"width: 85px;height:14px;text-align: left;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{Property.Name}}</div></th>\r\n\t    <th style=\"font-size: 10px;font-weight: normal;color:#D3D3D3 ;width: 85px;height: 14px\"><div matTooltip={{Property.Value}} style=\"width: 85px;height:14px;text-align: left;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{Property.Value}}</div></th>\r\n\t  </tr>\r\n\t</table>\r\n</div>\r\n  "
 
 /***/ }),
 
@@ -8141,7 +8267,7 @@ module.exports = "<div id=\"AttribsView\"  style=\"background-color: rgba(20,20,
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AttributesComponent; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SelectComponent; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("./node_modules/@angular/core/esm2015/core.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__data_DataSubscriber__ = __webpack_require__("./src/app/mobius-cesium/data/DataSubscriber.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -8155,7 +8281,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 
 
-let AttributesComponent = class AttributesComponent extends __WEBPACK_IMPORTED_MODULE_1__data_DataSubscriber__["a" /* DataSubscriber */] {
+let SelectComponent = class SelectComponent extends __WEBPACK_IMPORTED_MODULE_1__data_DataSubscriber__["a" /* DataSubscriber */] {
     constructor(injector, myElement) {
         super(injector);
     }
@@ -8169,7 +8295,6 @@ let AttributesComponent = class AttributesComponent extends __WEBPACK_IMPORTED_M
         if (message === "model_update") {
             this.data = this.dataService.getGsModel();
             this.mode = this.dataService.getmode();
-            this.viewer = this.dataService.getViewer();
             this.dataArr = this.dataService.get_ViData();
         }
     }
@@ -8183,7 +8308,12 @@ let AttributesComponent = class AttributesComponent extends __WEBPACK_IMPORTED_M
                     if (_ColorPro !== "None") {
                         _Property = [];
                         _Property.Name = _ColorPro;
-                        _Property.Value = this.dataService.get_SelectedEntity().properties[_Property.Name]._value;
+                        if (this.dataService.get_SelectedEntity().properties[_Property.Name] !== undefined) {
+                            _Property.Value = this.dataService.get_SelectedEntity().properties[_Property.Name]._value;
+                        }
+                        else {
+                            _Property.Value = ' ';
+                        }
                         this._Properties.push(_Property);
                     }
                 }
@@ -8191,14 +8321,131 @@ let AttributesComponent = class AttributesComponent extends __WEBPACK_IMPORTED_M
         }
     }
 };
-AttributesComponent = __decorate([
+SelectComponent = __decorate([
     Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["n" /* Component */])({
-        selector: "app-attributes",
+        selector: "app-select",
         template: __webpack_require__("./src/app/mobius-cesium/setting/attributes.component.html"),
         styles: [__webpack_require__("./src/app/mobius-cesium/setting/attributes.component.css")],
     }),
     __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_0__angular_core__["D" /* Injector */], __WEBPACK_IMPORTED_MODULE_0__angular_core__["u" /* ElementRef */]])
-], AttributesComponent);
+], SelectComponent);
+
+
+
+/***/ }),
+
+/***/ "./src/app/mobius-cesium/setting/display.copmponent.css":
+/***/ (function(module, exports) {
+
+module.exports = "/*/deep/.mat-tab-label, /deep/.mat-tab-label-active{\r\n  min-width: 60px!important;\r\n  padding: 3px!important;\r\n  margin: 3px!important;\r\n  color:#D3D3D3 !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-label{\r\n  height: 30px !important;\r\n  width: 60px !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-labels{\r\n  background-color: rgba(20,20,20,0.9) !important;\r\n}\r\n/deep/.mat-tab-header{\r\n  width: 700px !important;\r\n}\r\n/deep/.mat-tab-header-pagination-controls-enabled{\r\n  display: none !important;\r\n}\r\n\r\n/deep/.mat-ink-bar{\r\n  background-color: #395d73 !important;\r\n}\r\n\r\n/deep/.mat-tab{\r\n  min-width: 30px !important;\r\n}\r\n/deep/.mat-tab-body-content{\r\n  overflow: hidden !important;\r\n}\r\n\r\n/deep/.mat-header{\r\n  flex-direction: row;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  margin-left: 0px;\r\n  color:#395d73;\r\n  border: 0;\r\n  height: 20px;\r\n  background-color: rgba(20,20,20,0.9) !important;\r\n}\r\n/deep/.mat-tab-body-wrapper{\r\n  height:100% !important;\r\n\r\n}\r\n\r\n\r\n/deep/split-gutter{\r\n  background-color:rgb(138, 168, 192) !important;\r\n}\r\n\r\n/deep/.mat-accent .mat-slider-thumb {\r\n    background-color: #8AA8C0 !important;\r\n    cursor: -webkit-grab;\r\n}\r\n/deep/.mat-slider-thumb{\r\n  width: 5px !important;\r\n  right: -5px !important;\r\n}\r\n\r\n/deep/.mat-slider-track-fill{\r\n  background-color: #F0BFA0 !important;\r\n}\r\n\r\n/deep/.mat-slider-thumb-label-text {\r\n    color: #395d73 !important;\r\n    font-size: 12px !important;\r\n}\r\n/deep/.mat-slider-thumb-label{\r\n    height: 15px !important;\r\n    width: 15px !important;\r\n    top: -20px !important;\r\n    right: -7px !important;\r\n    background-color: white !important;\r\n    border: 1px solid #395d73 !important;\r\n}\r\n/deep/.mat-slider-track-background{\r\n  background-color: #D3D3D3 !important;\r\n}\r\n.mat-slider{\r\n    width: 150px !important;\r\n}*/\r\n\r\n.cesium-button {\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  color: #D3D3D3;\r\n  fill: #8AA8C0;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  font-family:sans-serif !important;\r\n  background: transparent;\r\n}\r\n\r\n.cesium-button-select{\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  fill: #8AA8C0;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  font-family:sans-serif !important;\r\n  color: #D3D3D3;\r\n  background: transparent;\r\n}\r\n\r\n.cesium-option{\r\n  background-color: #F1F1F1;\r\n  /*opacity: 0.8;*/\r\n  color: #8AA8C0;\r\n  border: 1px solid #8AA8C0;\r\n}\r\n\r\nhr {\r\n  display: block;\r\n  height: 1px;\r\n  border: 0;\r\n  border-top: 1px solid #D3D3D3 !important;\r\n  padding: 0; \r\n  color:#D3D3D3 !important;\r\n  width: 100%;\r\n  background-color: #D3D3D3 !important;\r\n}\r\n\r\n"
+
+/***/ }),
+
+/***/ "./src/app/mobius-cesium/setting/display.copmponent.html":
+/***/ (function(module, exports) {
+
+module.exports = "<div id=\"DisplayView\"  style=\"background-color: rgba(20,20,20,0.9);height: 100%;overflow-y:overlay;\"  >\r\n\t<table>\r\n      <tr>\r\n      <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#D3D3D3 !important;border:0;text-align: left;font-weight: normal;\">Imagery</div></th>\r\n      <th><div>\r\n        <select class=\"cesium-button\" (change)=\"onChangeImagery($event.target.value)\" [ngModel]=\"_Imagery\">\r\n          <option class=\"cesium-option\"  *ngFor=\"let Imagery of _ImageryList\" value={{Imagery}}>{{Imagery}}</option>\r\n        </select>\r\n      </div></th>\r\n      </tr>\r\n    </table>\r\n    <hr>\r\n    <table>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Shadows</div></th>\r\n      <th style=\"width:80px;height: 25px;\"><div style=\"width:80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\"><input type=\"checkbox\" [checked]=\"_Shadow\" (click)=\"changeShadow()\"></div></th></tr>\r\n    </table>\r\n    <table>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Date</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\"  value={{_ExtrudeMin}} style=\"width:80px;height: 18px;background:transparent;color:#D3D3D3;border:1px solid #8AA8C0;font-weight: normal;text-align: left\" (change)=\"changeDate($event.target.value)\"></th></tr>  \r\n     </table>\r\n</div>\r\n  "
+
+/***/ }),
+
+/***/ "./src/app/mobius-cesium/setting/display.copmponent.ts":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return DisplayComponent; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("./node_modules/@angular/core/esm2015/core.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__data_DataSubscriber__ = __webpack_require__("./src/app/mobius-cesium/data/DataSubscriber.ts");
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
+
+let DisplayComponent = class DisplayComponent extends __WEBPACK_IMPORTED_MODULE_1__data_DataSubscriber__["a" /* DataSubscriber */] {
+    constructor(injector, myElement) {
+        super(injector);
+    }
+    ngOnInit() {
+        this.data = this.dataService.getGsModel();
+        this._ImageryList = ["Display", "Stamen Toner", "Stamen Toner(Lite)", "Terrain(Standard)", "Terrain(Background)",
+            "OpenStreetMap", "Earth at Night", "Natural Earth\u00a0II", "Blue Marble"];
+        if (this._Imagery === undefined) {
+            this._Imagery = this._ImageryList[0];
+        }
+        else {
+            this._Imagery = this.dataService.get_Imagery();
+        }
+    }
+    notify(message) {
+    }
+    onChangeImagery(_Imagery) {
+        this._Imagery = _Imagery;
+        this.dataService.set_Imagery(_Imagery);
+        const layers = this.dataService.getViewer().scene.imageryLayers;
+        if (_Imagery === this._ImageryList[0]) {
+            layers.removeAll();
+            this.dataService.getViewer().scene.globe.baseColor = Cesium.Color.GRAY;
+        }
+        else if (_Imagery === this._ImageryList[1]) {
+            layers.removeAll();
+            var blackMarble = layers.addImageryProvider(Cesium.createOpenStreetMapImageryProvider({
+                url: "https://stamen-tiles.a.ssl.fastly.net/toner/"
+            }));
+        }
+        else if (_Imagery === this._ImageryList[2]) {
+            layers.removeAll();
+            var blackMarble = layers.addImageryProvider(Cesium.createOpenStreetMapImageryProvider({
+                url: "https://stamen-tiles.a.ssl.fastly.net/toner-lite/"
+            }));
+        }
+        else if (_Imagery === this._ImageryList[3]) {
+            layers.removeAll();
+            var blackMarble = layers.addImageryProvider(Cesium.createOpenStreetMapImageryProvider({
+                url: "https://stamen-tiles.a.ssl.fastly.net/terrain/"
+            }));
+        }
+        else if (_Imagery === this._ImageryList[4]) {
+            layers.removeAll();
+            var blackMarble = layers.addImageryProvider(Cesium.createOpenStreetMapImageryProvider({
+                url: "https://stamen-tiles.a.ssl.fastly.net/terrain-background/"
+            }));
+        }
+        else if (_Imagery === this._ImageryList[5]) {
+            layers.removeAll();
+            var blackMarble = layers.addImageryProvider(Cesium.createOpenStreetMapImageryProvider({
+                url: "https://a.tile.openstreetmap.org/"
+            }));
+        }
+        else if (_Imagery === this._ImageryList[6]) {
+            layers.removeAll();
+            var blackMarble = layers.addImageryProvider(new Cesium.IonImageryProvider({ assetId: 3812 }));
+            //blackMarble.alpha = 0.5; 
+        }
+        else if (_Imagery === this._ImageryList[7]) {
+            layers.removeAll();
+            var blackMarble = layers.addImageryProvider(Cesium.createTileMapServiceImageryProvider({
+                url: Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII"),
+            }));
+        }
+        else if (_Imagery === this._ImageryList[8]) {
+            layers.removeAll();
+            var blackMarble = layers.addImageryProvider(new Cesium.IonImageryProvider({ assetId: 3845 }));
+        }
+    }
+};
+DisplayComponent = __decorate([
+    Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["n" /* Component */])({
+        selector: "app-display",
+        template: __webpack_require__("./src/app/mobius-cesium/setting/display.copmponent.html"),
+        styles: [__webpack_require__("./src/app/mobius-cesium/setting/display.copmponent.css")],
+    }),
+    __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_0__angular_core__["D" /* Injector */], __WEBPACK_IMPORTED_MODULE_0__angular_core__["u" /* ElementRef */]])
+], DisplayComponent);
 
 
 
@@ -8207,14 +8454,14 @@ AttributesComponent = __decorate([
 /***/ "./src/app/mobius-cesium/setting/publish.component.css":
 /***/ (function(module, exports) {
 
-module.exports = "#publishwindow{\r\n  position: relative;\r\n  height: 100%;\r\n  width: 100%;\r\n  color:#ddd !important;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  font-size: 14px !important;\r\n  line-height: 14px;\r\n  overflow-x: hidden !important;\r\n}\r\n\r\n/deep/split-gutter{\r\n  background-color:rgb(138, 168, 192) !important;\r\n}\r\n\r\n/deep/.mat-accent .mat-slider-thumb {\r\n    background-color: #395d73 !important;\r\n    cursor: -webkit-grab;\r\n}\r\n\r\n/deep/.mat-slider-track-fill{\r\n  background-color: #395d73 !important;\r\n}\r\n\r\n/deep/.mat-slider-thumb-label-text {\r\n    color: #395d73 !important;\r\n    font-size: 12px !important;\r\n}\r\n\r\n/deep/.mat-slider-thumb-label{\r\n    height: 15px !important;\r\n    width: 15px !important;\r\n    top: -20px !important;\r\n    right: -7px !important;\r\n    background-color: white !important;\r\n    border: 1px solid #395d73 !important;\r\n}\r\n\r\n/deep/.mat-slider-track-background{\r\n  background-color: #ddd !important;\r\n}\r\n\r\n.mat-slider{\r\n    width: 150px !important;\r\n}\r\n\r\n.cesium-button {\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  color: #395D73;\r\n  fill: #395D73;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  font-family:sans-serif !important;\r\n  background: #F1F1F1;\r\n}\r\n\r\n.cesium-button-select{\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  fill: #395D73;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  color: #395D73;\r\n  font-family:sans-serif !important;\r\n  color: #395D73;\r\n  background-color: #F1F1F1;\r\n}\r\n\r\n.cesium-option{\r\n  background-color: #F1F1F1;\r\n  /*opacity: 0.8;*/\r\n  color: #395D73;\r\n  border: 1px solid #8AA8C0;\r\n}\r\n\r\nhr {\r\n  display: block;\r\n  height: 1px;\r\n  border: 0;\r\n  border-top: 1px solid #ddd !important;\r\n  padding: 0; \r\n  color:#ddd !important;\r\n  width: 100%;\r\n  background-color: #ddd !important;\r\n}\r\n"
+module.exports = "#publishwindow{\r\n  position: relative;\r\n  height: 100%;\r\n  width: 100%;\r\n  color:#D3D3D3 !important;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  font-size: 14px !important;\r\n  line-height: 16px;\r\n  overflow-x: hidden !important;\r\n}\r\n\r\n/deep/split-gutter{\r\n  background-color:rgb(138, 168, 192) !important;\r\n}\r\n\r\n/deep/.mat-accent .mat-slider-thumb {\r\n    background-color: #8AA8C0 !important;\r\n    cursor: -webkit-grab;\r\n    padding: 0px;\r\n    height: 24px;\r\n    /*min-width: 50px;*/\r\n    -webkit-box-flex: 1;\r\n    -ms-flex-positive: 1;\r\n    flex-grow: 1;\r\n    -ms-touch-action: none;\r\n        touch-action: none;\r\n    -webkit-user-select: none;\r\n       -moz-user-select: none;\r\n        -ms-user-select: none;\r\n            user-select: none;\r\n    -webkit-user-drag: none;\r\n    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);\r\n}\r\n\r\n/deep/.mat-slider-thumb{\r\n  width: 5px !important;\r\n  right: -5px !important;\r\n}\r\n\r\n/deep/.mat-slider-track-fill{\r\n  background-color: #F0BFA0 !important;\r\n}\r\n\r\n/deep/.mat-slider-thumb-label-text {\r\n    color: #395d73 !important;\r\n    font-size: 12px !important;\r\n}\r\n\r\n/deep/.mat-slider-thumb-label{\r\n    height: 15px !important;\r\n    width: 15px !important;\r\n    top: -20px !important;\r\n    right: -7px !important;\r\n    background-color: white !important;\r\n    border: 1px solid #395d73 !important;\r\n}\r\n\r\n/deep/.mat-slider-track-background{\r\n  background-color: #D3D3D3 !important;\r\n}\r\n\r\n.mat-slider{\r\n    width: 100%;\r\n    display: inline-block;\r\n    position: relative;\r\n    -webkit-box-sizing: border-box;\r\n            box-sizing: border-box;\r\n    outline: 0;\r\n    vertical-align: middle;\r\n}\r\n\r\n.cesium-button {\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  color: #D3D3D3;\r\n  fill: #8AA8C0;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  font-family:sans-serif !important;\r\n  background: transparent;\r\n}\r\n\r\n.cesium-button-select{\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  fill: #8AA8C0;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  font-family:sans-serif !important;\r\n  color: #D3D3D3;\r\n  background: transparent;\r\n}\r\n\r\n.cesium-option{\r\n  background-color: #F1F1F1;\r\n  /*opacity: 0.8;*/\r\n  color: #8AA8C0;\r\n  border: 1px solid #8AA8C0;\r\n}\r\n\r\nhr {\r\n  display: block;\r\n  height: 1px;\r\n  border: 0;\r\n  border-top: 1px solid #D3D3D3 !important;\r\n  padding: 0; \r\n  color:#D3D3D3 !important;\r\n  width: 100%;\r\n  background-color: #D3D3D3 !important;\r\n}\r\n"
 
 /***/ }),
 
 /***/ "./src/app/mobius-cesium/setting/publish.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"publish\" style=\"background-color: rgba(20,20,20,0.5);height: 100%;overflow-y:overlay;\"  >\r\n\r\n<div id=\"publishwindow\" *ngIf=\"dataArr!==undefined\">\r\n        <div *ngIf=\"_ColorKey!==undefined\">\r\n        <table >\r\n          <tr>\r\n          <th class=\"colorkey\" style=\"width: 280px\" *ngIf=\"_ColorDescr!==undefined\"><div style=\"color:#ddd !important;border:0;text-align: justify;font-weight: normal;padding: 10px 10px 0px 10px;\">{{_ColorDescr}}</div></th></tr>\r\n        </table>\r\n        <table>\r\n          <tr>\r\n            <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#ddd !important;border:0;text-align: left;font-weight: normal;padding: 10px 10px 0px 10px;\">Color&nbsp;&nbsp;:</div></th>\r\n          <th><div>\r\n            <select class=\"cesium-button\" (change)=\"onChangeColor($event.target.value)\" [ngModel]=\"_ColorKey\">\r\n              <option class=\"cesium-option\"  *ngFor=\"let ColorName of _ColorProperty\" value={{ColorName}}>{{ColorName}}</option>\r\n            </select>\r\n          </div></th>\r\n          </tr>\r\n          </table>\r\n    </div>\r\n    <div *ngIf=\"_ExtrudeKey!==undefined\">\r\n        <hr>\r\n          <table >\r\n          <tr>\r\n          <th class=\"colorkey\" style=\"width: 280px\" *ngIf=\"_ExtrudeDescr!==undefined\"><div style=\"color:#ddd !important;border:0;text-align: justify;font-weight: normal;padding: 10px 10px 0px 10px;\">{{_ExtrudeDescr}}</div></th></tr>\r\n        </table>\r\n        <table>\r\n          <tr>\r\n            <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#ddd !important;border:0;text-align: left;font-weight: normal;padding: 10px 10px 0px 10px;\">Extrude&nbsp;&nbsp;:</div></th>\r\n          <th><div>\r\n            <select class=\"cesium-button\" (change)=\"onChangeHeight($event.target.value)\" [ngModel]=\"_ExtrudeKey\">\r\n               <option class=\"cesium-option\"  *ngFor=\"let Height of _ExtrudeProperty\" value={{Height}}>{{Height}}</option>\r\n            </select>\r\n          </div></th>\r\n          </tr>\r\n        </table>\r\n        <table>\r\n          <tr ><th style=\"width:40px;height: 25px;\"><div style=\"width: 40px;color:#ddd !important;font-weight: normal;text-align: left;border:0;padding: 10px 10px 0px 10px;\">Min&nbsp;&nbsp;:</div></th>\r\n          <th style=\"width:40px;\"><div style=\"width: 40px;color:#ddd !important;font-weight: normal;text-align: left;border:0;padding: 10px 10px 0px 10px;\" *ngIf=\"_ExtrudeMin!==undefined\">{{_ExtrudeMin}}</div></th></tr>\r\n\r\n          <tr><th style=\"width:40px;\"><div style=\"width: 40px;color:#ddd !important;font-weight: normal;text-align: left;border:0;padding: 10px 10px 0px 10px;\">Max&nbsp;&nbsp;:</div></th>\r\n          <th style=\"width:60px;\"><div style=\"width: 60px;color:#ddd !important;font-weight: normal;text-align: left;border:0;padding: 10px 10px 0px 10px;\" *ngIf=\"_ExtrudeMax!==undefined\">{{_ExtrudeMax}}</div></th></tr>\r\n      </table>\r\n    </div>\r\n    <div *ngIf=\"_Filter!==undefined\">\r\n      <hr>\r\n      <div class=\"hide-container\" style=\"margin-top:5px;\">\r\n        <div *ngFor=\"let item of _Filter;\" id={{item.divid}}>\r\n      <table>\r\n        <tr >\r\n          <th style=\"width:280px;height: 25px;\"><div style=\"width:280px;color:#ddd !important;text-align: justify;vertical-align: middle;font-weight: normal;padding: 10px 10px 0px 10px;\">{{item.descr}}</div></th></tr>\r\n        </table>\r\n        <table>\r\n          <tr>\r\n            <th style=\"width:80px;height: 25px;\"><div style=\"width:80px;color:#ddd !important;text-align: left;vertical-align: middle;font-weight: normal;padding: 10px 10px 0px 10px;\">{{item.HeightHide}}</div></th>\r\n        <th *ngIf=\"item.type === 'number'\" style=\"width:40px;height: 25px;\">\r\n          <div style=\"width:40px;height: 25px;color:#ddd !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 0\">></div>\r\n          <div style=\"width:40px;height: 25px;color:#ddd !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 1\"><</div>\r\n          <div style=\"width:40px;height: 25px;color:#ddd !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 2\">=</div></th>\r\n          <th *ngIf=\"item.type === 'category'\" style=\"width:40px;height: 25px;\">\r\n          <div style=\"width:40px;height: 25px;color:#ddd !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 0\">none</div>\r\n          <div style=\"width:40px;height: 25px;color:#ddd !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 1\">=</div>\r\n          <div style=\"width:40px;height: 25px;color:#ddd !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 2\">!=</div></th>\r\n          <th *ngIf=\"item.type === 'number'\" style=\"width:80px;color:#395D73 !important;\"><input type=\"text\" id={{item.id}} value={{item.textHide}} (change)=\"Changetext($event.target.value,item.id)\" style=\"width:80px;color:#395D73 !important;\"></th>\r\n          <th *ngIf=\"item.type === 'category'\" style=\"width:73px;height: 25px;\"><div style=\"width:73px;height: 25px;\">\r\n          <select class=\"cesium-button-select\" [ngModel]=\"item.CategaryHide\" (change)=\"ChangeCategory($event.target.value,item.id,1)\" style=\"width:73px;height: 25px;\">\r\n            <option class=\"cesium-option\" *ngFor=\"let caty of item.Category\" value={{caty}}>{{caty}}</option>\r\n          </select></div></th>\r\n        <th style=\"width:20px;height: 25px;\" id={{item.id}}><input type=\"checkbox\" id={{item.id}} checked=\"checked\" (click)=\"Disable(item.id)\" tyle=\"width:20px;height: 25px;cursor:pointer;\"></th></tr>\r\n      </table>\r\n      <table>\r\n        <tr>\r\n        <th *ngIf=\"item.type === 'number'\" style=\"width:30px;height: 25px;vertical-align: top;padding-top: 10px;\"><div style=\"font-weight: normal;display: inline-block;color:#ddd !important;width:30px;\">{{item.HideMin}}</div></th>\r\n        <th *ngIf=\"item.type === 'number'\" style=\"width:150px;height: 25px;\"><div style=\"font-weight: normal;display: inline-block;width:150px;\"><mat-slider class=\"slider\" name=\"range\" id=\"0\" min={{item.HideMin}} max={{item.HideMax}} step=0.01 thumbLabel=true value={{item.textHide}} #textscale (change)=\"Changetext(textscale.value.toPrecision(2),item.id)\" >\r\n        </mat-slider></div></th>\r\n        <th *ngIf=\"item.type === 'number'\" style=\"width:30px;height: 25px;vertical-align: top;padding-top: 10px;\"><div style=\"font-weight: normal;display: inline-block;color:#ddd !important;width:30px;text-align: left;\">{{item.HideMax}}</div></th></tr>\r\n      </table><hr>\r\n        </div>\r\n      </div>\r\n      <div style=\"padding: 10px 10px 0px 10px;\">\r\n      <button style=\"background-color: #ddd ;color:#395D73;\" (click)=\"reset()\">Reset</button></div>\r\n      </div>\r\n</div>\r\n\r\n  "
+module.exports = "<div id=\"publish\" style=\"background-color: rgba(20,20,20,0.9);height: 100%;overflow-y:overlay;\"  >\r\n\r\n<div id=\"publishwindow\" *ngIf=\"dataArr!==undefined\">\r\n        <div *ngIf=\"_ColorKey!==undefined\">\r\n        <table >\r\n          <tr>\r\n          <th class=\"colorkey\" style=\"width: 280px\" *ngIf=\"_ColorDescr!==undefined\"><div style=\"color:#D3D3D3 !important;border:0;text-align: left;font-weight: normal;font-size:14px;line-height:16px;\">{{_ColorDescr}}</div></th></tr>\r\n        </table>\r\n        <table>\r\n          <tr>\r\n            <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#D3D3D3 !important;border:0;text-align: left;font-weight: normal;\">Color&nbsp;&nbsp;:</div></th>\r\n          <th><div>\r\n            <select class=\"cesium-button\" (change)=\"onChangeColor($event.target.value)\" [ngModel]=\"_ColorKey\">\r\n              <option class=\"cesium-option\"  *ngFor=\"let ColorName of _ColorProperty\" value={{ColorName}}>{{ColorName}}</option>\r\n            </select>\r\n          </div></th>\r\n          </tr>\r\n          </table>\r\n    </div>\r\n    <div *ngIf=\"_ExtrudeKey!==undefined\">\r\n        <hr>\r\n          <table >\r\n          <tr>\r\n          <th class=\"colorkey\" style=\"width: 280px\" *ngIf=\"_ExtrudeDescr!==undefined\"><div style=\"color:#D3D3D3 !important;border:0;text-align: left;font-weight: normal;font-size:14px;line-height:16px;\">{{_ExtrudeDescr}}</div></th></tr>\r\n        </table>\r\n        <table>\r\n          <tr>\r\n            <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#D3D3D3 !important;border:0;text-align: left;font-weight: normal;\">Extrude&nbsp;&nbsp;:</div></th>\r\n          <th><div>\r\n            <select class=\"cesium-button\" (change)=\"onChangeHeight($event.target.value)\" [ngModel]=\"_ExtrudeKey\">\r\n               <option class=\"cesium-option\"  *ngFor=\"let Height of _ExtrudeProperty\" value={{Height}}>{{Height}}</option>\r\n            </select>\r\n          </div></th>\r\n          </tr>\r\n        </table>\r\n        <table>\r\n          <tr ><th style=\"width:40px;height: 25px;\"><div style=\"width: 40px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Min&nbsp;&nbsp;:</div></th>\r\n          <th style=\"width:40px;\"><div style=\"width: 40px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\" *ngIf=\"_ExtrudeMin!==undefined\">{{_ExtrudeMin}}</div></th></tr>\r\n\r\n          <tr><th style=\"width:40px;\"><div style=\"width: 40px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Max&nbsp;&nbsp;:</div></th>\r\n          <th style=\"width:60px;\"><div style=\"width: 60px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\" *ngIf=\"_ExtrudeMax!==undefined\">{{_ExtrudeMax}}</div></th></tr>\r\n      </table>\r\n    </div>\r\n    <div *ngIf=\"_Filter!==undefined\">\r\n      <hr>\r\n      <div class=\"hide-container\" style=\"margin-top:5px;\">\r\n        <div *ngFor=\"let item of _Filter;\" id={{item.divid}}>\r\n      <table>\r\n        <tr >\r\n          <th style=\"width:280px;height: 25px;\"><div style=\"color:#D3D3D3 !important;text-align: left;vertical-align: middle;font-weight: normal;font-size:14px;line-height:16px;\">{{item.descr}}</div></th></tr>\r\n        </table>\r\n        <table>\r\n          <tr>\r\n            <th style=\"max-width: 80px;height: 25px;\"><div matTooltip={{item.HeightHide}} style=\"max-width: 80px;color:#D3D3D3 !important;text-align: left;vertical-align: middle;font-weight: normal;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{item.HeightHide}}</div></th>\r\n        <th *ngIf=\"item.type === 'number'\" style=\"width:20px;height: 25px;\">\r\n          <div style=\"width:20px;height: 25px;color:#D3D3D3 !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 0\">></div>\r\n          <div style=\"width:20px;height: 25px;color:#D3D3D3 !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 1\"><</div>\r\n          <div style=\"width:20px;height: 25px;color:#D3D3D3 !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 2\">=</div></th>\r\n          <th *ngIf=\"item.type === 'category'\" style=\"width:30px;height: 25px;\">\r\n          <div style=\"width:20px;height: 25px;color:#D3D3D3 !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 0\">none</div>\r\n          <div style=\"width:20px;height: 25px;color:#D3D3D3 !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 1\">=</div>\r\n          <div style=\"width:20px;height: 25px;color:#D3D3D3 !important;vertical-align: middle;font-weight: normal;margin-top: 10px;\" *ngIf=\"item.RelaHide === 2\">!=</div></th>\r\n          <th *ngIf=\"item.type === 'number'\" style=\"width:80px;color:#395D73 !important;\"><input type=\"text\" id={{item.id}} value={{item.textHide}} (change)=\"Changetext($event.target.value,item.id)\" style=\"width:80px;background:transparent;color:#D3D3D3;border:1px solid #8AA8C0;\"></th>\r\n          <th *ngIf=\"item.type === 'category'\" style=\"width:73px;height: 25px;\"><div style=\"width:73px;height: 25px;\">\r\n          <select class=\"cesium-button-select\" [ngModel]=\"item.CategaryHide\" (change)=\"ChangeCategory($event.target.value,item.id,1)\" style=\"width:73px;height: 25px;\">\r\n            <option class=\"cesium-option\" *ngFor=\"let caty of item.Category\" value={{caty}}>{{caty}}</option>\r\n          </select></div></th>\r\n        <th style=\"width:20px;height: 22px;\" id={{item.id}}><input type=\"checkbox\" id={{item.id}} checked=\"checked\" (click)=\"Disable(item.id)\" style=\"width:20px;height: 22px;cursor:pointer;\"></th></tr>\r\n      </table>\r\n      <table>\r\n        <tr>\r\n        <th *ngIf=\"item.type === 'number'\" style=\"max-width: 30px;height: 25px;vertical-align: top;padding-top: 10px;\"><div style=\"font-weight: normal;display: inline-block;color:#D3D3D3 !important;text-align: left;max-width: 30px;\">{{item.HideMin}}</div></th>\r\n        <th *ngIf=\"item.type === 'number'\" style=\"width:200px;height: 25px;\"><div style=\"font-weight: normal;display: inline-block;width:200px;\"><mat-slider class=\"slider\" name=\"range\" id=\"0\" min={{item.HideMin}} max={{item.HideMax}} step=0.01 thumbLabel=true value={{item.textHide}} #textscale (change)=\"Changetext(textscale.value.toPrecision(2),item.id)\" >\r\n        </mat-slider></div></th>\r\n        <th *ngIf=\"item.type === 'number'\" style=\"max-width: 30px;height: 25px;vertical-align: top;padding-top: 10px;\"><div style=\"font-weight: normal;display: inline-block;color:#D3D3D3 !important;max-width: 30px;text-align: left;\">{{item.HideMax}}</div></th></tr>\r\n      </table><hr>\r\n        </div>\r\n      </div>\r\n      <div>\r\n      <button style=\"color:#D3D3D3;border:2px solid #8AA8C0;background-color: transparent;cursor:pointer;\" (click)=\"reset()\">Reset</button></div>\r\n      </div>\r\n</div>\r\n\r\n  "
 
 /***/ }),
 
@@ -8290,7 +8537,6 @@ let PublishComponent = class PublishComponent extends __WEBPACK_IMPORTED_MODULE_
             this._CheckDisable = true;
         }
         if (this._CheckDisable === false) {
-            addHide.style.background = "grey";
             if (this._Filter[index].type === "number") {
                 const textHide = this._Filter[index].textHide;
                 this._Filter[index].Disabletext = Number(textHide);
@@ -8308,7 +8554,6 @@ let PublishComponent = class PublishComponent extends __WEBPACK_IMPORTED_MODULE_
             }
         }
         else {
-            addHide.style.background = null;
             if (this._Filter[index].type === "number") {
                 this._Filter[index].textHide = this._Filter[index].Disabletext;
                 this._Filter[index].Disabletext = null;
@@ -8429,14 +8674,14 @@ PublishComponent = __decorate([
 /***/ "./src/app/mobius-cesium/setting/setting.component.css":
 /***/ (function(module, exports) {
 
-module.exports = "#setting{\r\n  position: relative;\r\n  height: 100%;\r\n  width: 100%;\r\n  color:#ddd !important;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  font-size: 14px !important;\r\n  line-height: 14px;\r\n  overflow-x: hidden !important;\r\n  border-right: 1px solid gray;\r\n}\r\n\r\n/deep/.mat-tab-label, /deep/.mat-tab-label-active{\r\n  min-width: 60px!important;\r\n  padding: 3px!important;\r\n  margin: 3px!important;\r\n  color:#ddd !important;\r\n  background-color: transparent !important;\r\n}\r\n\r\n/deep/.mat-tab-label{\r\n  height: 30px !important;\r\n  width: 60px !important;\r\n  background-color: transparent !important;\r\n}\r\n\r\n/deep/.mat-tab-labels{\r\n  background-color: rgba(20,20,20,0.5) !important;\r\n}\r\n\r\n/deep/.mat-tab-header{\r\n  width: 700px !important;\r\n}\r\n\r\n/deep/.mat-tab-header-pagination-controls-enabled{\r\n  display: none !important;\r\n}\r\n\r\n/deep/.mat-ink-bar{\r\n  background-color: #395d73 !important;\r\n}\r\n\r\n/deep/.mat-tab{\r\n  min-width: 30px !important;\r\n}\r\n\r\n/deep/.mat-tab-body-content{\r\n  overflow: hidden !important;\r\n}\r\n\r\n/deep/.mat-header{\r\n  -webkit-box-orient: horizontal;\r\n  -webkit-box-direction: normal;\r\n      -ms-flex-direction: row;\r\n          flex-direction: row;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  margin-left: 0px;\r\n  color:#395d73;\r\n  border: 0;\r\n  height: 20px;\r\n  background-color: rgba(20,20,20,0.5) !important;\r\n}\r\n\r\n/deep/.mat-tab-body-wrapper{\r\n  height:100% !important;\r\n\r\n}\r\n\r\n/deep/split-gutter{\r\n  background-color:rgb(138, 168, 192) !important;\r\n}\r\n\r\n/deep/.mat-accent .mat-slider-thumb {\r\n    background-color: #395d73 !important;\r\n    cursor: -webkit-grab;\r\n}\r\n\r\n/deep/.mat-slider-track-fill{\r\n  background-color: #395d73 !important;\r\n}\r\n\r\n/deep/.mat-slider-thumb-label-text {\r\n    color: #395d73 !important;\r\n    font-size: 12px !important;\r\n}\r\n\r\n/deep/.mat-slider-thumb-label{\r\n    height: 15px !important;\r\n    width: 15px !important;\r\n    top: -20px !important;\r\n    right: -7px !important;\r\n    background-color: white !important;\r\n    border: 1px solid #395d73 !important;\r\n}\r\n\r\n/deep/.mat-slider-track-background{\r\n  background-color: #ddd !important;\r\n}\r\n\r\n.mat-slider{\r\n    width: 150px !important;\r\n}\r\n"
+module.exports = "#setting{\r\n  position: relative;\r\n  height: 100%;\r\n  width: 100%;\r\n  color:#D3D3D3 !important;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  font-size: 14px !important;\r\n  line-height: 14px;\r\n  overflow-x: hidden !important;\r\n  border-right: 1px solid gray;\r\n}\r\n\r\n/deep/.mat-tab-label, /deep/.mat-tab-label-active{\r\n  min-width: 60px!important;\r\n  padding: 3px!important;\r\n  margin: 3px!important;\r\n  color:#D3D3D3 !important;\r\n  background-color: transparent !important;\r\n}\r\n\r\n/deep/.mat-tab-label{\r\n  height: 30px !important;\r\n  width: 60px !important;\r\n  background-color: transparent !important;\r\n}\r\n\r\n/deep/.mat-tab-labels{\r\n  background-color: rgba(20,20,20,0.9) !important;\r\n}\r\n\r\n/deep/.mat-tab-header{\r\n  width: 700px !important;\r\n}\r\n\r\n/deep/.mat-tab-header-pagination-controls-enabled{\r\n  display: none !important;\r\n}\r\n\r\n/deep/.mat-ink-bar{\r\n  background-color: #395d73 !important;\r\n}\r\n\r\n/deep/.mat-tab{\r\n  min-width: 30px !important;\r\n}\r\n\r\n/deep/.mat-tab-body-content{\r\n  overflow: hidden !important;\r\n}\r\n\r\n/deep/.mat-header{\r\n  -webkit-box-orient: horizontal;\r\n  -webkit-box-direction: normal;\r\n      -ms-flex-direction: row;\r\n          flex-direction: row;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  margin-left: 0px;\r\n  color:#395d73;\r\n  border: 0;\r\n  height: 20px;\r\n  background-color: rgba(20,20,20,0.9) !important;\r\n}\r\n\r\n/deep/.mat-tab-body-wrapper{\r\n  height:100% !important;\r\n\r\n}\r\n\r\n/deep/split-gutter{\r\n  background-color:rgb(138, 168, 192) !important;\r\n}\r\n\r\n/deep/.mat-accent .mat-slider-thumb {\r\n    background-color: #8AA8C0 !important;\r\n    cursor: -webkit-grab;\r\n}\r\n\r\n/deep/.mat-slider-thumb{\r\n  width: 5px !important;\r\n  right: -5px !important;\r\n}\r\n\r\n/deep/.mat-slider-track-fill{\r\n  background-color: #F0BFA0 !important;\r\n}\r\n\r\n/deep/.mat-slider-thumb-label-text {\r\n    color: #395d73 !important;\r\n    font-size: 12px !important;\r\n}\r\n\r\n/deep/.mat-slider-thumb-label{\r\n    height: 15px !important;\r\n    width: 15px !important;\r\n    top: -20px !important;\r\n    right: -7px !important;\r\n    background-color: white !important;\r\n    border: 1px solid #395d73 !important;\r\n}\r\n\r\n/deep/.mat-slider-track-background{\r\n  background-color: #D3D3D3 !important;\r\n}\r\n\r\n.mat-slider{\r\n    width: 150px !important;\r\n}\r\n"
 
 /***/ }),
 
 /***/ "./src/app/mobius-cesium/setting/setting.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"setting\" >\r\n  <mat-tab-group class=\"mat-tab-group\" style=\"height: 100%;\" (selectedTabChange)=\"changedata($event.index)\">\r\n    <mat-tab label=\"&nbsp;Visualise&nbsp;\" *ngIf=\"mode==='editor'\" >\r\n      <app-visualise (change)=\"LoadViewer()\" (click)=\"LoadViewer()\"></app-visualise>\r\n    </mat-tab>\r\n    <mat-tab label=\"&nbsp;Attributes&nbsp;\" *ngIf=\"mode==='editor'\" >\r\n      <app-attributes ></app-attributes>\r\n    </mat-tab>\r\n    <mat-tab label=\"&nbsp;Publish&nbsp;\" >\r\n      <app-publish  (change)=\"LoadViewer()\" (click)=\"Reset();LoadViewer();\"></app-publish>\r\n    </mat-tab>\r\n  </mat-tab-group>\r\n</div>"
+module.exports = "<div id=\"setting\" >\r\n  <mat-tab-group class=\"mat-tab-group\" style=\"height: 100%;\" (selectedTabChange)=\"changedata($event.index)\" *ngIf=\"mode==='editor'\" >\r\n    <mat-tab label=\"&nbsp;Select&nbsp;\">\r\n      <app-select></app-select>\r\n    </mat-tab>\r\n    <mat-tab label=\"&nbsp;Data&nbsp;\" >\r\n      <app-data (change)=\"LoadViewer()\" (click)=\"LoadViewer()\"></app-data>\r\n    </mat-tab>\r\n    <mat-tab label=\"&nbsp;Display&nbsp;\" >\r\n      <app-display></app-display>\r\n    </mat-tab>\r\n    <mat-tab label=\"&nbsp;Publish&nbsp;\" >\r\n      <app-publish  (change)=\"LoadViewer()\" (click)=\"Reset();LoadViewer();\"></app-publish>\r\n    </mat-tab>\r\n  </mat-tab-group>\r\n    <app-publish *ngIf=\"mode==='viewer'\" (change)=\"LoadViewer()\" (click)=\"Reset();LoadViewer();\"></app-publish>\r\n</div>"
 
 /***/ }),
 
@@ -8468,26 +8713,24 @@ let SettingComponent = class SettingComponent extends __WEBPACK_IMPORTED_MODULE_
     ngOnInit() {
         this.data = this.dataService.getGsModel();
         this.mode = this.dataService.getmode();
-        this.viewer = this.dataService.getViewer();
         if (this.mode === "viewer") {
-            this.changedata(2);
+            this.changedata(3);
         }
         else if (this.mode === "editor") {
-            this.changedata(0);
+            this.changedata(1);
         }
     }
     notify(message) {
         if (message === "model_update") {
             this.data = this.dataService.getGsModel();
             this.mode = this.dataService.getmode();
-            this.viewer = this.dataService.getViewer();
             try {
                 if (this.data !== undefined && this.data["features"] !== undefined) {
                     if (this.mode === "viewer") {
-                        this.changedata(2);
+                        this.changedata(3);
                     }
                     else if (this.mode === "editor") {
-                        this.changedata(0);
+                        this.changedata(1);
                     }
                 }
             }
@@ -8498,10 +8741,10 @@ let SettingComponent = class SettingComponent extends __WEBPACK_IMPORTED_MODULE_
     }
     changedata(id) {
         this.dataService.set_index(id);
-        if (id === 0) {
+        if (id === 1) {
             this.dataArr = this.dataService.get_ViData();
         }
-        else if (id === 2) {
+        else if (id === 3) {
             this.dataArr = this.dataService.get_PuData();
         }
         if (this.dataArr !== undefined) {
@@ -8524,6 +8767,7 @@ let SettingComponent = class SettingComponent extends __WEBPACK_IMPORTED_MODULE_
         const _HeightChart = this.dataArr["HeightChart"];
         const _Invert = this.dataArr["Invert"];
         const _Scale = this.dataArr["Scale"];
+        const _indexArr = this.dataArr["indexArr"];
         let _Filter;
         if (this.dataArr["Filter"] !== undefined && this.dataArr["Filter"].length !== 0) {
             _Filter = this.dataArr["Filter"];
@@ -8536,50 +8780,80 @@ let SettingComponent = class SettingComponent extends __WEBPACK_IMPORTED_MODULE_
             _ChromaScale = __WEBPACK_IMPORTED_MODULE_2_chroma_js__["scale"]("SPECTRAL").domain([1, 0]);
         }
         const self = this;
-        let i = 0;
         promise.then(function (dataSource) {
             const entities = dataSource.entities.values;
-            for (const entity of entities) {
-                i = i + 1;
+            for (const i of _indexArr) {
+                const entity = entities[i];
                 let _CheckHide;
-                if (_Filter.length !== 0) {
-                    _CheckHide = self.Hide(_Filter, entity, _HeightChart);
-                    if (_CheckHide === true) {
-                        if (entity.polygon !== undefined) {
-                            entity.polygon.extrudedHeight = 0;
-                            entity.polygon.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
-                            if (_HeightChart === true) {
-                                if (entity.polyline !== undefined) {
-                                    entity.polyline.show = false;
+                if (entity.polygon !== undefined) {
+                    if (_Filter.length !== 0) {
+                        _CheckHide = self.Hide(_Filter, entity, _HeightChart);
+                        if (_CheckHide === true) {
+                            if (entity.polygon !== undefined) {
+                                entity.polygon.extrudedHeight = 0;
+                                entity.polygon.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
+                                if (_HeightChart === true) {
+                                    if (entity.polyline !== undefined) {
+                                        entity.polyline.show = false;
+                                    }
                                 }
                             }
+                            if (entity.polyline !== undefined) {
+                                entity.polyline.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
+                            }
                         }
-                        if (entity.polyline !== undefined) {
-                            entity.polyline.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
+                    }
+                    if (_Filter.length === 0 || _CheckHide === false) {
+                        if (_ColorKey !== "None") {
+                            if (typeof (_ColorText[0]) === "number") {
+                                self.colorByNum(entity, _ColorMax, _ColorMin, _ColorKey, _ChromaScale);
+                            }
+                            else {
+                                self.colorByCat(entity, _ColorText, _ColorKey, _ChromaScale);
+                            }
+                        }
+                        else {
+                            entity.polygon.material = Cesium.Color.GOLD.withAlpha(0.8);
+                        }
+                        if (_ExtrudeKey !== "None") {
+                            if (_HeightChart === false) {
+                                entity.polyline = undefined;
+                                entity.polygon.extrudedHeight = self.ExtrudeHeight(entity.properties[_ExtrudeKey]._value, _ExtrudeMax, _ExtrudeMin, _Invert) * _Scale;
+                            }
+                            else {
+                                entity.polygon.extrudedHeight = 0;
+                                const center = Cesium.BoundingSphere.fromPoints(entity.polygon.hierarchy.getValue().positions).center;
+                                const radius = Math.min(Math.round(Cesium.BoundingSphere.fromPoints(entity.polygon.hierarchy.getValue().positions).radius / 100), 10);
+                                const longitudeString = Cesium.Math.toDegrees(Cesium.Ellipsoid.WGS84.
+                                    cartesianToCartographic(center).longitude).toFixed(10);
+                                const latitudeString = Cesium.Math.toDegrees(Cesium.Ellipsoid.WGS84.cartesianToCartographic(center).
+                                    latitude).toFixed(10);
+                                entity.polyline = new Cesium.PolylineGraphics({
+                                    positions: new Cesium.Cartesian3.fromDegreesArrayHeights([longitudeString, latitudeString, 0, longitudeString,
+                                        latitudeString, self.ExtrudeHeight(entity.properties[_ExtrudeKey]._value, _ExtrudeMax, _ExtrudeMin, _Invert) * _Scale]),
+                                    width: radius,
+                                    material: entity.polygon.material,
+                                    show: true,
+                                });
+                            }
+                        }
+                        else {
+                            entity.polyline = undefined;
+                            entity.polygon.extrudedHeight = 0;
                         }
                     }
                 }
-                if (_Filter.length === 0 || _CheckHide === false) {
-                    if (typeof (_ColorText[0]) === "number") {
-                        self.colorByNum(entity, _ColorMax, _ColorMin, _ColorKey, _ChromaScale);
+                else if (entity.polyline !== undefined) {
+                    if (_ColorKey !== "None") {
+                        if (typeof (_ColorText[0]) === "number") {
+                            self.colorByNum(entity, _ColorMax, _ColorMin, _ColorKey, _ChromaScale);
+                        }
+                        else {
+                            self.colorByCat(entity, _ColorText, _ColorKey, _ChromaScale);
+                        }
                     }
                     else {
-                        self.colorByCat(entity, _ColorText, _ColorKey, _ChromaScale);
-                    }
-                    if (_HeightChart === false) {
-                        entity.polyline = undefined;
-                        entity.polygon.extrudedHeight = self.ExtrudeHeight(entity.properties[_ExtrudeKey]._value, _ExtrudeMax, _ExtrudeMin, _Invert) * _Scale;
-                    }
-                    else {
-                        entity.polygon.extrudedHeight = 0;
-                        const center = self.dataService.getpoly_center()[i];
-                        entity.polyline = new Cesium.PolylineGraphics({
-                            positions: new Cesium.Cartesian3.fromDegreesArrayHeights([center[0], center[1], 0, center[0], center[1],
-                                self.ExtrudeHeight(entity.properties[_ExtrudeKey]._value, _ExtrudeMax, _ExtrudeMin, _Invert) * _Scale]),
-                            width: center[2],
-                            material: entity.polygon.material,
-                            show: true,
-                        });
+                        entity.polyline.material = Cesium.Color.GOLD.withAlpha(0.8);
                     }
                 }
             }
@@ -8596,7 +8870,7 @@ let SettingComponent = class SettingComponent extends __WEBPACK_IMPORTED_MODULE_
                     }
                 }
                 else if (typeof (value) === "string") {
-                    if (this._compareCat(value, filter.textHide, Number(filter.RelaHide))) {
+                    if (this._compareCat(value, filter.CategaryHide, Number(filter.RelaHide))) {
                         _CheckHide = true;
                     }
                 }
@@ -8611,7 +8885,7 @@ let SettingComponent = class SettingComponent extends __WEBPACK_IMPORTED_MODULE_
             case 1:
                 return value > slider;
             case 2:
-                return value === slider;
+                return value !== slider;
         }
     }
     _compareCat(value, _Categary, relation) {
@@ -8653,7 +8927,8 @@ let SettingComponent = class SettingComponent extends __WEBPACK_IMPORTED_MODULE_
                 entity.polygon.material = Cesium.Color.fromBytes(rgb[0], rgb[1], rgb[2]);
             }
             if (entity.polyline !== undefined) {
-                entity.polyline.material = Cesium.Color.fromBytes(rgb[0], rgb[1], rgb[2]);
+                const newColor = new Cesium.Color.fromBytes(rgb[0], rgb[1], rgb[2]);
+                entity.polyline.material.color.setValue(newColor);
             }
         }
     }
@@ -8663,12 +8938,23 @@ let SettingComponent = class SettingComponent extends __WEBPACK_IMPORTED_MODULE_
             for (let j = 0; j < _ColorText.length; j++) {
                 if (entity.properties[_ColorKey]._value === _ColorText[j]) {
                     const rgb = _ChromaScale(1 - (j / _ColorText.length));
-                    entity.polygon.material = Cesium.Color.fromBytes(rgb._rgb[0], rgb._rgb[1], rgb._rgb[2]);
+                    if (entity.polygon !== undefined) {
+                        entity.polygon.material = Cesium.Color.fromBytes(rgb._rgb[0], rgb._rgb[1], rgb._rgb[2]);
+                    }
+                    if (entity.polyline !== undefined) {
+                        const newColor = new Cesium.Color.fromBytes(rgb[0], rgb[1], rgb[2]);
+                        entity.polyline.material.color.setValue(newColor);
+                    }
                     initial = true;
                 }
             }
             if (initial === false) {
-                entity.polygon.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
+                if (entity.polygon !== undefined) {
+                    entity.polygon.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
+                }
+                if (entity.polyline !== undefined) {
+                    entity.polyline.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
+                }
             }
         }
     }
@@ -8689,14 +8975,14 @@ SettingComponent = __decorate([
 /***/ "./src/app/mobius-cesium/setting/visualise.component.css":
 /***/ (function(module, exports) {
 
-module.exports = "#SettingView{\r\n  position: relative;\r\n  padding:0px;\r\n  height: 100%;\r\n  width: 100%;\r\n  color:#ddd !important;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  font-size: 14px !important;\r\n  line-height: 14px;\r\n  overflow-x: hidden !important;\r\n  background-color: rgba(20,20,20,0.5);\r\n  overflow-y:overlay;\r\n}\r\n/deep/.mat-tab-label, /deep/.mat-tab-label-active{\r\n  min-width: 60px!important;\r\n  padding: 3px!important;\r\n  margin: 3px!important;\r\n  color:#ddd !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-label{\r\n  height: 30px !important;\r\n  width: 60px !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-labels{\r\n  background-color: rgba(20,20,20,0.5) !important;\r\n}\r\n/deep/.mat-tab-header{\r\n  width: 700px !important;\r\n}\r\n/deep/.mat-tab-header-pagination-controls-enabled{\r\n  display: none !important;\r\n}\r\n/deep/.mat-ink-bar{\r\n  background-color: #395d73 !important;\r\n}\r\n/deep/.mat-tab{\r\n  min-width: 30px !important;\r\n}\r\n/deep/.mat-tab-body-content{\r\n  overflow: hidden !important;\r\n}\r\n/deep/.mat-header{\r\n  -webkit-box-orient: horizontal;\r\n  -webkit-box-direction: normal;\r\n      -ms-flex-direction: row;\r\n          flex-direction: row;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  margin-left: 0px;\r\n  color:#395d73;\r\n  border: 0;\r\n  height: 20px;\r\n  background-color: rgba(20,20,20,0.5) !important;\r\n}\r\n/deep/.mat-tab-body-wrapper{\r\n  height:100% !important;\r\n\r\n}\r\n/deep/split-gutter{\r\n  background-color:rgb(138, 168, 192) !important;\r\n}\r\n/deep/.mat-accent .mat-slider-thumb {\r\n    background-color: #395d73 !important;\r\n    cursor: -webkit-grab;\r\n}\r\n/deep/.mat-slider-track-fill{\r\n  background-color: #395d73 !important;\r\n}\r\n/deep/.mat-slider-thumb-label-text {\r\n    color: #395d73 !important;\r\n    font-size: 12px !important;\r\n}\r\n/deep/.mat-slider-thumb-label{\r\n    height: 15px !important;\r\n    width: 15px !important;\r\n    top: -20px !important;\r\n    right: -7px !important;\r\n    background-color: white !important;\r\n    border: 1px solid #395d73 !important;\r\n}\r\n/deep/.mat-slider-track-background{\r\n  background-color: #ddd !important;\r\n}\r\n.mat-slider{\r\n    width: 150px !important;\r\n}\r\n.cesium-button {\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  color: #395D73;\r\n  fill: #395D73;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  height:22px;\r\n  font-family:sans-serif !important;\r\n  background: #F1F1F1;\r\n}\r\n.cesium-button-select{\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  color: #395D73;\r\n  fill: #395D73;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  height:22px;\r\n  font-family:sans-serif !important;\r\n  background: #F1F1F1;\r\n}\r\n.cesium-option{\r\n  background-color: #F1F1F1;\r\n  /*opacity: 0.8;*/\r\n  color: #395D73;\r\n  border: 1px solid #8AA8C0;\r\n}\r\nhr {\r\n  display: block;\r\n  height: 1px;\r\n  border: 0;\r\n  border-top: 1px solid #ddd !important;\r\n  padding: 0; \r\n  color:#ddd !important;\r\n  width: 100%;\r\n  background-color: #ddd !important;\r\n}\r\n"
+module.exports = "#SettingView{\r\n  position: relative;\r\n  padding:0px;\r\n  height: 100%;\r\n  width: 100%;\r\n  color:#D3D3D3 !important;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  font-size: 14px !important;\r\n  line-height: 14px;\r\n  overflow-x: hidden !important;\r\n  background-color: rgba(20,20,20,0.9);\r\n  overflow-y:overlay;\r\n}\r\n/deep/.mat-tab-label, /deep/.mat-tab-label-active{\r\n  min-width: 60px!important;\r\n  padding: 3px!important;\r\n  margin: 3px!important;\r\n  color:#D3D3D3 !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-label{\r\n  height: 30px !important;\r\n  width: 60px !important;\r\n  background-color: transparent !important;\r\n}\r\n/deep/.mat-tab-labels{\r\n  background-color: rgba(20,20,20,0.9) !important;\r\n}\r\n/deep/.mat-tab-header{\r\n  width: 700px !important;\r\n}\r\n/deep/.mat-tab-header-pagination-controls-enabled{\r\n  display: none !important;\r\n}\r\n/deep/.mat-ink-bar{\r\n  background-color: #395d73 !important;\r\n}\r\n/deep/.mat-tab{\r\n  min-width: 30px !important;\r\n}\r\n/deep/.mat-tab-body-content{\r\n  overflow: hidden !important;\r\n}\r\n/deep/.mat-header{\r\n  -webkit-box-orient: horizontal;\r\n  -webkit-box-direction: normal;\r\n      -ms-flex-direction: row;\r\n          flex-direction: row;\r\n  font-family: Roboto,\"Helvetica Neue\",sans-serif;\r\n  margin-left: 0px;\r\n  color:#395d73;\r\n  border: 0;\r\n  height: 20px;\r\n  background-color: rgba(20,20,20,0.9) !important;\r\n}\r\n/deep/.mat-tab-body-wrapper{\r\n  height:100% !important;\r\n\r\n}\r\n/deep/split-gutter{\r\n  background-color:rgb(138, 168, 192) !important;\r\n}\r\n/deep/.mat-accent .mat-slider-thumb {\r\n    background-color: #8AA8C0 !important;\r\n    cursor: -webkit-grab;\r\n}\r\n/deep/.mat-slider-thumb{\r\n  width: 5px !important;\r\n  right: -5px !important;\r\n}\r\n/deep/.mat-slider-track-fill{\r\n  background-color: #F0BFA0 !important;\r\n}\r\n/deep/.mat-slider-thumb-label-text {\r\n    color: #8AA8C0 !important;\r\n    font-size: 12px !important;\r\n}\r\n/deep/.mat-slider-thumb-label{\r\n    height: 15px !important;\r\n    width: 15px !important;\r\n    top: -20px !important;\r\n    right: -7px !important;\r\n    background-color: white !important;\r\n    border: 1px solid #8AA8C0 !important;\r\n}\r\n/deep/.mat-slider-track-background{\r\n  background-color: #D3D3D3 !important;\r\n}\r\n.mat-slider{\r\n    width: 150px !important;\r\n}\r\n.cesium-button {\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  color: #D3D3D3;\r\n  fill: #8AA8C0;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  font-family:sans-serif !important;\r\n  background: transparent;\r\n}\r\n.cesium-button-select{\r\n  display: inline-block;\r\n  position: relative;\r\n  border: 1px solid #8AA8C0;\r\n  fill: #8AA8C0;\r\n  border-radius: 0px;\r\n  padding: 3px 0px;\r\n  margin: 0px 0px;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n  -moz-user-select: none;\r\n  -webkit-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n  width: 80px;\r\n  font-family:sans-serif !important;\r\n  color: #D3D3D3;\r\n  background: transparent;\r\n}\r\n.cesium-option{\r\n  background-color: #F1F1F1;\r\n  /*opacity: 0.8;*/\r\n  color: #8AA8C0;\r\n  border: 1px solid #8AA8C0;\r\n}\r\nhr {\r\n  display: block;\r\n  height: 1px;\r\n  border: 0;\r\n  border-top: 1px solid #D3D3D3 !important;\r\n  padding: 0; \r\n  color:#D3D3D3 !important;\r\n  width: 100%;\r\n  background-color: #8AA8C0 !important;\r\n}\r\n"
 
 /***/ }),
 
 /***/ "./src/app/mobius-cesium/setting/visualise.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"SettingView\" >\r\n    <table>\r\n      <tr>\r\n      <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#ddd !important;border:0;text-align: left;font-weight: normal;\">Imagery</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><div style=\"width:80px;height: 18px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\"><input type=\"button\" value=\"Disable\" style=\"color:#395d73;width: 80px;height: 22px;\" (click)=\"changeImagery()\"></div></th>\r\n    </tr>\r\n  </table>\r\n  <hr>\r\n    <table>\r\n      <tr>\r\n      <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#ddd !important;border:0;text-align: left;font-weight: normal;\">Color</div></th>\r\n      <th><div>\r\n        <select class=\"cesium-button\" (change)=\"onChangeColor($event.target.value)\" [ngModel]=\"_ColorKey\">\r\n          <option class=\"cesium-option\"  *ngFor=\"let ColorName of _ColorProperty\" value={{ColorName}}>{{ColorName}}</option>\r\n        </select>\r\n      </div></th>\r\n      </tr>\r\n      </table>\r\n      <table>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\">Min</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\"  value={{_ColorMin}} style=\"width:80px;height: 18px;color:#395d73;font-weight: normal;text-align: left;border:0;\" (change)=\"changeColorMin($event.target.value)\"></th></tr>  \r\n      </table>\r\n      <table >\r\n      <tr ><th style=\"width:80px;\"><div style=\"width: 80px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\">Max</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\" value={{_ColorMax}} style=\"width: 80px;height: 18px;color:#395d73;font-weight: normal;text-align: left;border:0;\" (change)=\"changeColorMax($event.target.value)\"></th></tr>\r\n  </table>\r\n    <hr>\r\n      <table>\r\n      <tr>\r\n      <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#ddd !important;border:0;text-align: left;font-weight: normal;\">Extrude</div></th>\r\n      <th><div>\r\n        <select class=\"cesium-button\" (change)=\"onChangeHeight($event.target.value)\" [ngModel]=\"_ExtrudeKey\">\r\n           <option class=\"cesium-option\"  *ngFor=\"let Height of _ExtrudeProperty\" value={{Height}}>{{Height}}</option>\r\n        </select>\r\n      </div></th>\r\n      </tr>\r\n    </table>\r\n    <table>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\">Min</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\"  value={{_ExtrudeMin}} style=\"width:80px;height: 18px;color:#395d73;font-weight: normal;text-align: left;border:0;\" (change)=\"changeHeightMin($event.target.value)\"></th></tr>  \r\n      </table>\r\n      <table >\r\n      <tr ><th style=\"width:80px;\"><div style=\"width: 80px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\">Max</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\" value={{_ExtrudeMax}} style=\"width: 80px;height: 18px;color:#395d73;font-weight: normal;text-align: left;border:0;\" (change)=\"changeHeightMax($event.target.value)\"></th></tr>\r\n  </table>\r\n   <table>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\">Scale</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\" value={{_Scale}} style=\"width:80px;height: 18px;color:#395d73;font-weight: normal;text-align: left;border:0;\" (change)=\"changescale($event.target.value)\" ></th></tr>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\">Invert</div></th>\r\n      <th style=\"width:80px;height: 25px;\"><div style=\"width:80px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\"><input type=\"checkbox\" [checked]=\"_Invert\" (click)=\"changeopp()\"></div></th></tr>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\">Height Chart</div></th>\r\n      <th style=\"width:80px;height: 25px;\"><div style=\"width:80px;color:#ddd !important;font-weight: normal;text-align: left;border:0;\"><input type=\"checkbox\" [checked]=\"_HeightChart\" (click)=\"changeExtrude();\"></div></th></tr>  \r\n  </table>\r\n  <hr>\r\n  <table>\r\n    <tr>\r\n    <th class=\"colorkey\" style=\"width: 75px;height: 22px;\"><div class=\"Hide\" style=\"width: 75px;height: 22;color:#ddd !important;border-color:#395d73;border:0;text-align: left;font-weight: normal;\"><input type=\"button\" value=\"Add Filter\" style=\"color:#395d73;width: 75px;height: 22px;\" (click)=\"addHide()\"></div></th>\r\n    <th style=\"width:20px;height: 22px;\"><div style=\"width:20px;height: 22px;margin-left: 10px\">\r\n      <select class=\"cesium-button-select\"  (change)=\"ChangeHeight($event.target.value)\">\r\n         <option class=\"cesium-option\"  *ngFor=\"let ColorName of _ColorProperty\" value={{ColorName}}>{{ColorName}}</option>\r\n      </select></div></th>\r\n    </tr>\r\n  </table>\r\n  <div class=\"hide-container\" style=\"margin-top:5px;\">\r\n    <div *ngFor=\"let item of _Filter;\" id={{item.divid}}>\r\n  <table>\r\n    <tr ><th style=\"width:85px;height: 22px;\"><div style=\"width:85px;color:#ddd !important;text-align: left;vertical-align: middle;font-weight: normal;\">{{item.HeightHide}}</div></th>\r\n    <th *ngIf=\"item.type === 'number'\" style=\"width:40px;height: 22px;\"><div style=\"width:40px;height: 22px;\">\r\n      <select class=\"cesium-button-select\" [ngModel]=\"item.RelaHide\" (change)=\"Changerelation($event.target.value,item.id)\" style=\"width:40px;height: 22px;\">\r\n         <option class=\"cesium-option\" value=0>></option>\r\n         <option class=\"cesium-option\" value=1><</option>\r\n         <option class=\"cesium-option\" value=2>=</option>\r\n      </select></div></th>\r\n      <th *ngIf=\"item.type === 'category'\" style=\"width:40px;height: 22px;\"><div style=\"width:40px;height: 22px;\">\r\n      <select class=\"cesium-button-select\" [ngModel]=\"item.RelaHide\" (change)=\"ChangeCategory($event.target.value,item.id,0)\" style=\"width:40px;height: 22px;\">\r\n        <option class=\"cesium-option\" value=0>none</option>\r\n        <option class=\"cesium-option\" value=1>=</option>\r\n        <option class=\"cesium-option\" value=2>!=</option>\r\n      </select></div></th>\r\n      <th *ngIf=\"item.type === 'number'\" style=\"width:70px;height: 20px;\"><input type=\"text\" id={{item.id}} value={{item.textHide}} (change)=\"Changetext($event.target.value,item.id)\" style=\"width:70px;height: 20px;\"></th>\r\n      <th *ngIf=\"item.type === 'category'\" style=\"width:73px;height: 22px;\"><div style=\"width:73px;height: 22px;\">\r\n      <select class=\"cesium-button-select\" [ngModel]=\"item.CategaryHide\" (change)=\"ChangeCategory($event.target.value,item.id,1)\" style=\"width:73px;height: 22px;\">\r\n        <option class=\"cesium-option\" *ngFor=\"let caty of item.Category\" value={{caty}}>{{caty}}</option>\r\n      </select></div></th>\r\n    <th style=\"width:20px;height: 22px;\" id={{item.id}}><span id={{item.id}} (click)=\"deleteHide(item.id)\" style=\"width:20px;height: 22px;cursor:pointer;\"><i class=\"material-icons\" style=\"color:#ddd;font-size:16px\">delete</i></span></th>\r\n    <th style=\"width:20px;height: 25px;\" id={{item.id}}><input type=\"checkbox\" id={{item.id}} checked=\"checked\" (click)=\"Disable(item.id)\" tyle=\"width:20px;height: 25px;cursor:pointer;\"></th></tr>\r\n  </table>\r\n  <table>\r\n    <tr>\r\n    <th *ngIf=\"item.type === 'number'\" style=\"width:30px;height: 22px;vertical-align: top;padding-top: 10px;\"><div style=\"font-weight: normal;display: inline-block;color:#ddd !important;width:30px;\">{{item.HideMin}}</div></th>\r\n    <th *ngIf=\"item.type === 'number'\" style=\"width:150px;height: 22px;\"><div style=\"font-weight: normal;display: inline-block;width:150px;\"><mat-slider class=\"slider\" name=\"range\" id=\"0\" min={{item.HideMin}} max={{item.HideMax}} step=0.01 thumbLabel=true value={{item.textHide}} #textscale (change)=\"Changetext(textscale.value.toPrecision(2),item.id)\" >\r\n    </mat-slider></div></th>\r\n    <th *ngIf=\"item.type === 'number'\" style=\"width:30px;height: 22px;vertical-align: top;padding-top: 10px;\"><div style=\"font-weight: normal;display: inline-block;color:#ddd !important;width:30px;text-align: left;\">{{item.HideMax}}</div></th></tr>\r\n  </table><hr>\r\n    </div>\r\n  </div>\r\n  </div>\r\n  "
+module.exports = "<div id=\"SettingView\" >\r\n    <table>\r\n      <tr>\r\n      <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#D3D3D3 !important;border:0;text-align: left;font-weight: normal;\">Color</div></th>\r\n      <th><div>\r\n        <select class=\"cesium-button\" (change)=\"onChangeColor($event.target.value)\" [ngModel]=\"_ColorKey\">\r\n          <option class=\"cesium-option\"  *ngFor=\"let ColorName of _ColorProperty\" value={{ColorName}}>{{ColorName}}</option>\r\n        </select>\r\n      </div></th>\r\n      </tr>\r\n      </table>\r\n      <table>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Min</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\"  value={{_ColorMin}} style=\"width:80px;height: 18px;background:transparent;color:#D3D3D3;border:1px solid #8AA8C0;font-weight: normal;text-align: left;\" (change)=\"changeColorMin($event.target.value)\"></th></tr>  \r\n      </table>\r\n      <table >\r\n      <tr ><th style=\"width:80px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Max</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\" value={{_ColorMax}} style=\"width: 80px;height: 18px;background:transparent;color:#D3D3D3;border:1px solid #8AA8C0;font-weight: normal;text-align: left;\" (change)=\"changeColorMax($event.target.value)\"></th></tr>\r\n  </table>\r\n    <table>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Invert</div></th>\r\n      <th style=\"width:80px;height: 25px;\"><div style=\"width:80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\"><input type=\"checkbox\" [checked]=\"_ColorInvert\" (click)=\"changeColorInvert()\"></div></th></tr>\r\n    </table>\r\n    <hr>\r\n      <table>\r\n      <tr>\r\n      <th class=\"colorkey\" style=\"width: 80px\"><div class=\"Hide\" style=\"width: 80px;color:#D3D3D3 !important;border:0;text-align: left;font-weight: normal;\">Extrude</div></th>\r\n      <th><div>\r\n        <select class=\"cesium-button\" (change)=\"onChangeHeight($event.target.value)\" [ngModel]=\"_ExtrudeKey\">\r\n           <option class=\"cesium-option\"  *ngFor=\"let Height of _ExtrudeProperty\" value={{Height}}>{{Height}}</option>\r\n        </select>\r\n      </div></th>\r\n      </tr>\r\n    </table>\r\n    <table>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Min</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\"  value={{_ExtrudeMin}} style=\"width:80px;height: 18px;background:transparent;color:#D3D3D3;border:1px solid #8AA8C0;font-weight: normal;text-align: left\" (change)=\"changeHeightMin($event.target.value)\"></th></tr>  \r\n      </table>\r\n      <table >\r\n      <tr ><th style=\"width:80px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Max</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\" value={{_ExtrudeMax}} style=\"width: 80px;height: 18px;background:transparent;color:#D3D3D3;border:1px solid #8AA8C0;font-weight: normal;text-align: left;\" (change)=\"changeHeightMax($event.target.value)\"></th></tr>\r\n  </table>\r\n   <table>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Scale</div></th>\r\n      <th style=\"width:80px;height: 18px;\"><input type=\"text\" value={{_Scale}} style=\"width:80px;height: 18px;background:transparent;color:#D3D3D3;border:1px solid #8AA8C0;font-weight: normal;text-align: left;\" (change)=\"changescale($event.target.value)\" ></th></tr>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Invert</div></th>\r\n      <th style=\"width:80px;height: 25px;\"><div style=\"width:80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\"><input type=\"checkbox\" [checked]=\"_Invert\" (click)=\"changeopp()\"></div></th></tr>\r\n      <tr ><th style=\"width:80px;height: 25px;\"><div style=\"width: 80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\">Height Chart</div></th>\r\n      <th style=\"width:80px;height: 25px;\"><div style=\"width:80px;color:#D3D3D3 !important;font-weight: normal;text-align: left;border:0;\"><input type=\"checkbox\" [checked]=\"_HeightChart\" (click)=\"changeExtrude();\"></div></th></tr>  \r\n  </table>\r\n  <hr>\r\n  <table>\r\n    <tr>\r\n    <th class=\"colorkey\" style=\"width: 75px;height: 25px;\"><div class=\"Hide\" style=\"width: 75px;height: 25;color:#D3D3D3 !important;border-color:#395d73;border:0;text-align: left;font-weight: normal;\"><input type=\"button\" value=\"Add Filter\" style=\"color:#D3D3D3;border:1px solid #8AA8C0;width: 75px;height: 25px;background-color: transparent;cursor:pointer;\" (click)=\"addHide()\"></div></th>\r\n    <th style=\"width:20px;height: 22px;\"><div style=\"width:20px;height: 22px;margin-left: 10px\">\r\n      <select class=\"cesium-button-select\"  (change)=\"ChangeHeight($event.target.value)\">\r\n         <option class=\"cesium-option\"  *ngFor=\"let ColorName of _ColorProperty\" value={{ColorName}}>{{ColorName}}</option>\r\n      </select></div></th>\r\n    </tr>\r\n  </table>\r\n  <div class=\"hide-container\" style=\"margin-top:5px;\">\r\n    <div *ngFor=\"let item of _Filter;\" id={{item.divid}}>\r\n  <table>\r\n    <tr ><th style=\"width:85px;height: 22px;\"><div style=\"width:85px;color:#D3D3D3 !important;text-align: left;vertical-align: middle;font-weight: normal;\">{{item.HeightHide}}</div></th>\r\n    <th *ngIf=\"item.type === 'number'\" style=\"width:40px;height: 22px;\"><div style=\"width:40px;height: 22px;\">\r\n      <select class=\"cesium-button-select\" [ngModel]=\"item.RelaHide\" (change)=\"Changerelation($event.target.value,item.id)\" style=\"width:40px;height: 22px;\">\r\n         <option class=\"cesium-option\" value=0>></option>\r\n         <option class=\"cesium-option\" value=1><</option>\r\n         <option class=\"cesium-option\" value=2>=</option>\r\n      </select></div></th>\r\n      <th *ngIf=\"item.type === 'category'\" style=\"width:40px;height: 22px;\"><div style=\"width:40px;height: 22px;\">\r\n      <select class=\"cesium-button-select\" [ngModel]=\"item.RelaHide\" (change)=\"ChangeCategory($event.target.value,item.id,0)\" style=\"width:40px;height: 22px;\">\r\n        <option class=\"cesium-option\" value=0>none</option>\r\n        <option class=\"cesium-option\" value=1>=</option>\r\n        <option class=\"cesium-option\" value=2>!=</option>\r\n      </select></div></th>\r\n      <th *ngIf=\"item.type === 'number'\" style=\"width:70px;height: 20px;\"><input type=\"text\" id={{item.id}} value={{item.textHide}} (change)=\"Changetext($event.target.value,item.id)\" style=\"width:70px;height: 20px;background:transparent;color:#D3D3D3;border:1px solid #8AA8C0;\"></th>\r\n      <th *ngIf=\"item.type === 'category'\" style=\"width:73px;height: 22px;\"><div style=\"width:73px;height: 22px;\">\r\n      <select class=\"cesium-button-select\" [ngModel]=\"item.CategaryHide\" (change)=\"ChangeCategory($event.target.value,item.id,1)\" style=\"width:73px;height: 22px;\">\r\n        <option class=\"cesium-option\" *ngFor=\"let caty of item.Category\" value={{caty}}>{{caty}}</option>\r\n      </select></div></th>\r\n    <th style=\"width:20px;height: 22px;\" id={{item.id}}><span id={{item.id}} (click)=\"deleteHide(item.id)\" style=\"width:20px;height: 22px;cursor:pointer;\"><i class=\"material-icons\" style=\"color:#D3D3D3;font-size:16px\">delete</i></span></th>\r\n    <th style=\"width:20px;height: 25px;\" id={{item.id}}><input type=\"checkbox\" id={{item.id}} checked=\"checked\" (click)=\"Disable(item.id)\" tyle=\"width:20px;height: 25px;cursor:pointer;\"></th></tr>\r\n  </table>\r\n  <table>\r\n    <tr>\r\n    <th *ngIf=\"item.type === 'number'\" style=\"width:50px;height: 25px;vertical-align: top;padding-top: 10px;\"><div style=\"font-weight: normal;display: inline-block;color:#D3D3D3 !important;width:30px;\">{{item.HideMin}}</div></th>\r\n    <th *ngIf=\"item.type === 'number'\" style=\"width:150px;height: 22px;\"><div style=\"font-weight: normal;display: inline-block;width:150px;\"><mat-slider class=\"slider\" name=\"range\" id=\"0\" min={{item.HideMin}} max={{item.HideMax}} step=0.01 thumbLabel=true value={{item.textHide}} #textscale (change)=\"Changetext(textscale.value.toPrecision(2),item.id)\" >\r\n    </mat-slider></div></th>\r\n    <th *ngIf=\"item.type === 'number'\" style=\"width:50px;height: 25px;vertical-align: top;padding-top: 10px;\"><div style=\"font-weight: normal;display: inline-block;color:#D3D3D3 !important;width:30px;text-align: left;\">{{item.HideMax}}</div></th></tr>\r\n  </table><hr>\r\n    </div>\r\n  </div>\r\n  </div>\r\n  "
 
 /***/ }),
 
@@ -8704,7 +8990,7 @@ module.exports = "<div id=\"SettingView\" >\r\n    <table>\r\n      <tr>\r\n    
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return VisualiseComponent; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return DataComponent; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("./node_modules/@angular/core/esm2015/core.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__data_DataSubscriber__ = __webpack_require__("./src/app/mobius-cesium/data/DataSubscriber.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -8718,7 +9004,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 
 
-let VisualiseComponent = class VisualiseComponent extends __WEBPACK_IMPORTED_MODULE_1__data_DataSubscriber__["a" /* DataSubscriber */] {
+let DataComponent = class DataComponent extends __WEBPACK_IMPORTED_MODULE_1__data_DataSubscriber__["a" /* DataSubscriber */] {
     constructor(injector, myElement) {
         super(injector);
         this._CheckDisable = true;
@@ -8747,6 +9033,7 @@ let VisualiseComponent = class VisualiseComponent extends __WEBPACK_IMPORTED_MOD
         this._ColorKey = this.dataArr["ColorKey"];
         this._ColorMax = this.dataArr["ColorMax"];
         this._ColorMin = this.dataArr["ColorMin"];
+        this._ColorInvert = this.dataArr["ColorInvert"];
         this._ExtrudeProperty = this.dataArr["ExtrudeProperty"];
         this._ExtrudeKey = this.dataArr["ExtrudeKey"];
         this._ExtrudeMax = this.dataArr["ExtrudeMax"];
@@ -8843,6 +9130,11 @@ let VisualiseComponent = class VisualiseComponent extends __WEBPACK_IMPORTED_MOD
         this.dataArr["Invert"] = this._Invert;
         this.dataService.set_ViData(this.dataArr);
     }
+    changeColorInvert() {
+        this._ColorInvert = !this._ColorInvert;
+        this.dataArr["ColorInvert"] = this._ColorInvert;
+        this.dataService.set_ViData(this.dataArr);
+    }
     changeExtrude() {
         this._HeightChart = !this._HeightChart;
         this.dataArr["HeightChart"] = this._HeightChart;
@@ -8921,7 +9213,6 @@ let VisualiseComponent = class VisualiseComponent extends __WEBPACK_IMPORTED_MOD
             this._CheckDisable = true;
         }
         if (this._CheckDisable === false) {
-            addHide.style.background = "grey";
             if (this._Filter[index].type === "number") {
                 const textHide = this._Filter[index].textHide;
                 this._Filter[index].Disabletext = Number(textHide);
@@ -8939,7 +9230,6 @@ let VisualiseComponent = class VisualiseComponent extends __WEBPACK_IMPORTED_MOD
             }
         }
         else {
-            addHide.style.background = null;
             if (this._Filter[index].type === "number") {
                 this._Filter[index].textHide = this._Filter[index].Disabletext;
                 this._Filter[index].Disabletext = null;
@@ -9025,21 +9315,15 @@ let VisualiseComponent = class VisualiseComponent extends __WEBPACK_IMPORTED_MOD
         });
         return texts;
     }
-    changeImagery() {
-        if (this.dataService.getViewer() !== undefined) {
-            this.dataService.getViewer().scene.imageryLayers.removeAll();
-            this.dataService.getViewer().scene.globe.baseColor = Cesium.Color.GRAY;
-        }
-    }
 };
-VisualiseComponent = __decorate([
+DataComponent = __decorate([
     Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["n" /* Component */])({
-        selector: "app-visualise",
+        selector: "app-data",
         template: __webpack_require__("./src/app/mobius-cesium/setting/visualise.component.html"),
         styles: [__webpack_require__("./src/app/mobius-cesium/setting/visualise.component.css")],
     }),
     __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_0__angular_core__["D" /* Injector */], __WEBPACK_IMPORTED_MODULE_0__angular_core__["u" /* ElementRef */]])
-], VisualiseComponent);
+], DataComponent);
 
 
 
@@ -9048,14 +9332,14 @@ VisualiseComponent = __decorate([
 /***/ "./src/app/mobius-cesium/viewer/viewer.component.css":
 /***/ (function(module, exports) {
 
-module.exports = "body{\r\n  background: red;\r\n}\r\n#cesiumContainer{\r\n height: 100%;\r\n width: 100%; \r\n font-family: sans-serif !important;\r\n margin: 0px !important;\r\n padding: 0px !important;\r\n font-size: 14px;\r\n}\r\n#ColorBar{\r\n  z-index:99;\r\n  margin: 5px;\r\n  width: 100%;\r\n  padding: 2px 5px;\r\n  position: absolute;\r\n  display:inline-block;\r\n  bottom: 7%;\r\n  overflow: hidden !important;\r\n  text-overflow: ellipsis !important;\r\n  table-layout:fixed !important;\r\n  white-space: nowrap !important;\r\n}\r\n#ColorKey{\r\n  z-index:99;\r\n  margin: 5px;\r\n  width: 100%;\r\n  padding: 2px 5px;\r\n  position: absolute;\r\n  display:inline-block;\r\n  bottom: 2%;\r\n  overflow: hidden !important;\r\n  text-overflow: ellipsis !important;\r\n  table-layout:fixed !important;\r\n  white-space: nowrap !important;\r\n}\r\n\r\n"
+module.exports = "body{\r\n  background: red;\r\n}\r\n#cesiumContainer{\r\n height: 100%;\r\n width: 100%; \r\n font-family: sans-serif !important;\r\n margin: 0px !important;\r\n padding: 0px !important;\r\n font-size: 14px;\r\n}\r\n#ColorBar{\r\n  z-index:99;\r\n  margin: 5px;\r\n  width: 100%;\r\n  padding: 2px 5px;\r\n  position: absolute;\r\n  display:inline-block;\r\n  bottom: 7%;\r\n  overflow: hidden !important;\r\n  text-overflow: ellipsis !important;\r\n  table-layout:fixed !important;\r\n  white-space: nowrap !important;\r\n}\r\n#ColorKey{\r\n  z-index:99;\r\n  margin: 5px;\r\n  width: 100%;\r\n  padding: 2px 5px;\r\n  position: absolute;\r\n  display:inline-block;\r\n  bottom: 2%;\r\n  overflow: hidden !important;\r\n  text-overflow: ellipsis !important;\r\n  table-layout:fixed !important;\r\n  white-space: nowrap !important;\r\n}\r\n#Download{\r\n  z-index: 99;\r\n  top: 5px;\r\n  position: absolute;\r\n  right: 160px;\r\n  width: 32px;\r\n  height: 32px;\r\n  font-size: 16px;\r\n  -webkit-box-sizing: border-box;\r\n          box-sizing: border-box;\r\n  border-radius: 14%;\r\n  padding: 0;\r\n  vertical-align: middle;\r\n}\r\n\r\n"
 
 /***/ }),
 
 /***/ "./src/app/mobius-cesium/viewer/viewer.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"cesiumContainer\" (click)=\"select();showAttribs($event)\" (mousemove)=\"Colortext();\">\r\n  <div id=\"ColorBar\" *ngIf=\"texts!==undefined\">\r\n  \t<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 88%;margin-left: 9%\">\r\n       <tr >\r\n          <th *ngFor=\"let text of texts;\" style=\"text-align:right;width: 7%\"><div  style=\"width: 8%;vertical-align: text-top;color:white;text-shadow: 0px 0px 3px black;\">{{text}}</div></th>\r\n        </tr>\r\n    </table>\r\n\t<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 80%;margin: 0 auto;\">\r\n       <tr>\r\n          <th  *ngFor=\"let color of _Colorbar;let indx=index\" style=\"width: 0.5px;\" ><div [ngStyle]=\"{ 'background-color': color}\" ><div *ngIf=\"indx%8===0\" style=\"border-left: #FFFFFF 1px solid;border-color: black\">&nbsp;</div><div *ngIf=\"indx%8!==0\">&nbsp;</div></div></th>\r\n        </tr>\r\n    </table>\r\n  </div>\r\n  <div id=\"ColorBar\" *ngIf=\"_Cattexts!==undefined\" style=\"width: 100%;text-align: center\">\r\n    <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" *ngFor=\"let cattext of _Cattexts\" style=\"display:inline-block;overflow: hidden !important;text-overflow: ellipsis !important;table-layout:fixed !important;white-space: nowrap !important; \">\r\n          <tr >\r\n            <th  style=\"width:80px;display:inline-block;overflow: hidden !important;text-overflow: ellipsis !important;table-layout:fixed !important;white-space: nowrap !important; \"><div [ngStyle]=\"{ 'background-color': cattext.color}\" >&nbsp;&nbsp;&nbsp;</div></th>\r\n        </tr>\r\n        <tr>\r\n            <th><div matTooltip={{cattext.text}}  style=\"width:80px;text-align: left;white-space: nowrap;display:inline-block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;color:white;text-shadow: 0px 0px 3px black;\">{{cattext.text}}</div></th>\r\n          </tr>\r\n        </table>\r\n  </div>\r\n  <div id=\"ColorBar\" *ngIf=\"_CatNumtexts!==undefined\" >\r\n    <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 82%;margin: 0 auto;\">\r\n      <tr >\r\n        <th *ngFor=\"let cattext of _CatNumtexts;\" style=\"text-align:left;max-width: 3%\"><div *ngIf=\"cattext.text!==null\" style=\"width: 0.5px;vertical-align: text-top;color:white;text-shadow: 0px 0px 3px black;\">{{cattext.text}}</div><div *ngIf=\"cattext.text===null\" style=\"width: 0.5px;vertical-align: text-top;color:white;text-shadow: 0px 0px 3px black;\">&nbsp;&nbsp;&nbsp;</div></th>\r\n      </tr>\r\n    </table>\r\n    <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 80%;margin: 0 auto;\">\r\n      <tr>\r\n        <th  *ngFor=\"let cattext of _CatNumtexts;let indx=index\" style=\"width: 0.5px;\" ><div [ngStyle]=\"{ 'background-color': cattext.color}\" ><div style=\"border-color: black\">&nbsp;</div></div></th>\r\n      </tr>\r\n    </table>\r\n  </div>\r\n  <div *ngIf=\"mode==='viewer'\" id=\"ColorKey\">\r\n    <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 80%;margin: 0 auto;text-align:center;color:white;text-shadow: 0px 0px 3px black;\" >\r\n      <tr>\r\n        <th  style=\"width: 40%;\" ><div>Color:&nbsp;{{_ColorKey}}</div></th>\r\n        <th  style=\"width: 40%;\" ><div>Extrude:&nbsp;{{_ExtrudeKey}}</div></th>\r\n      </tr>\r\n    </table>\r\n  </div>\r\n  <div>\r\n    <table id=\"cesium-infoBox-defaultTable\" style=\"width: 140px;position:absolute;padding:4px;background-color:white;display: none;\">\r\n       <tr *ngFor=\"let pickupArr of pickupArrs\"><th style=\"font-size: 10px;font-weight: normal;color:#395d73;width: 60px;height: 14px\"><div matTooltip={{pickupArr.name}} style=\"width: 60px;height:14px;text-align: left;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{pickupArr.name}}</div></th><th style=\"font-size: 10px;font-weight: normal;color:#395d73;width: 80px;height: 14px\"><div matTooltip={{pickupArr.data}} style=\"width: 80px;height:14px;text-align: left;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{pickupArr.data}}</div></th></tr>\r\n       </table>\r\n        \r\n     </div>\r\n</div>"
+module.exports = "<div id=\"cesiumContainer\" (click)=\"select();showAttribs($event)\" (mousemove)=\"Colortext();\">\r\n  <button class=\"cesium-button cesium-button-toolbar\" (click)=\"save_geojson()\" id=\"Download\"><i class=\"fa fa-download\"></i></button>\r\n  <div id=\"ColorBar\" *ngIf=\"texts!==undefined\">\r\n  \t<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 88%;margin-left: 9%\">\r\n       <tr >\r\n          <th *ngFor=\"let text of texts;\" style=\"text-align:right;width: 7%\"><div  style=\"width: 8%;vertical-align: text-top;color:white;text-shadow: 0px 0px 3px black;\">{{text}}</div></th>\r\n        </tr>\r\n    </table>\r\n\t<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 80%;margin: 0 auto;\">\r\n       <tr>\r\n          <th  *ngFor=\"let color of _Colorbar;let indx=index\" style=\"width: 0.5px;\" ><div [ngStyle]=\"{ 'background-color': color}\" ><div *ngIf=\"indx%8===0\" style=\"border-left: #FFFFFF 1px solid;border-color: black\">&nbsp;</div><div *ngIf=\"indx%8!==0\">&nbsp;</div></div></th>\r\n        </tr>\r\n    </table>\r\n  </div>\r\n  <div id=\"ColorBar\" *ngIf=\"_Cattexts!==undefined\" style=\"width: 100%;text-align: center\">\r\n    <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" *ngFor=\"let cattext of _Cattexts\" style=\"display:inline-block;overflow: hidden !important;text-overflow: ellipsis !important;table-layout:fixed !important;white-space: nowrap !important; \">\r\n          <tr >\r\n            <th  style=\"width:80px;display:inline-block;overflow: hidden !important;text-overflow: ellipsis !important;table-layout:fixed !important;white-space: nowrap !important; \"><div [ngStyle]=\"{ 'background-color': cattext.color}\" >&nbsp;&nbsp;&nbsp;</div></th>\r\n        </tr>\r\n        <tr>\r\n            <th><div matTooltip={{cattext.text}}  style=\"width:80px;text-align: left;white-space: nowrap;display:inline-block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;color:white;text-shadow: 0px 0px 3px black;\">{{cattext.text}}</div></th>\r\n          </tr>\r\n        </table>\r\n  </div>\r\n  <div id=\"ColorBar\" *ngIf=\"_CatNumtexts!==undefined\" >\r\n    <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 82%;margin: 0 auto;\">\r\n      <tr >\r\n        <th *ngFor=\"let cattext of _CatNumtexts;\" style=\"text-align:left;max-width: 3%\"><div *ngIf=\"cattext.text!==null\" style=\"width: 0.5px;vertical-align: text-top;color:white;text-shadow: 0px 0px 3px black;\">{{cattext.text}}</div><div *ngIf=\"cattext.text===null\" style=\"width: 0.5px;vertical-align: text-top;color:white;text-shadow: 0px 0px 3px black;\">&nbsp;&nbsp;&nbsp;</div></th>\r\n      </tr>\r\n    </table>\r\n    <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 80%;margin: 0 auto;\">\r\n      <tr>\r\n        <th  *ngFor=\"let cattext of _CatNumtexts;let indx=index\" style=\"width: 0.5px;\" ><div [ngStyle]=\"{ 'background-color': cattext.color}\" ><div style=\"border-color: black\">&nbsp;</div></div></th>\r\n      </tr>\r\n    </table>\r\n  </div>\r\n  <div *ngIf=\"mode==='viewer'\" id=\"ColorKey\">\r\n    <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#d0d0d0\" style=\"width: 80%;margin: 0 auto;text-align:center;color:white;text-shadow: 0px 0px 3px black;\" >\r\n      <tr>\r\n        <th  style=\"width: 40%;\" ><div>Color:&nbsp;{{_ColorKey}}</div></th>\r\n        <th  style=\"width: 40%;\" ><div>Extrude:&nbsp;{{_ExtrudeKey}}</div></th>\r\n      </tr>\r\n    </table>\r\n  </div>\r\n  <div>\r\n    <table id=\"cesium-infoBox-defaultTable\" style=\"width: 140px;position:absolute;padding:4px;background-color:white;display: none;\">\r\n       <tr *ngFor=\"let pickupArr of pickupArrs\"><th style=\"font-size: 10px;font-weight: normal;color:#395d73;width: 60px;height: 14px\"><div matTooltip={{pickupArr.name}} style=\"width: 60px;height:14px;text-align: left;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{pickupArr.name}}</div></th><th style=\"font-size: 10px;font-weight: normal;color:#395d73;width: 80px;height: 14px\"><div matTooltip={{pickupArr.data}} style=\"width: 80px;height:14px;text-align: left;white-space: nowrap;display:block;overflow: hidden !important;text-overflow: ellipsis !important;cursor:pointer;\">{{pickupArr.data}}</div></th></tr>\r\n       </table>\r\n        \r\n     </div>\r\n</div>"
 
 /***/ }),
 
@@ -9079,6 +9363,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 
 
+// import * as d3 from "d3-array";
 
 let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1__data_DataSubscriber__["a" /* DataSubscriber */] {
     constructor(injector, myElement) {
@@ -9092,13 +9377,40 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
             this.dataService.getValue(this.data);
             this.dataService.LoadJSONData();
             this.dataArr = this.dataService.get_ViData();
-            this._index = 0;
+            this._index = 1;
         }
         if (this.mode === "viewer") {
             this.dataService.LoadJSONData();
             this.dataArr = this.dataService.get_PuData();
-            this._index = 2;
+            this._index = 3;
         }
+        const viewer = new Cesium.Viewer("cesiumContainer", {
+            infoBox: false,
+            showRenderLoopErrors: false,
+            orderIndependentTranslucency: false,
+            baseLayerPicker: false,
+            //timeline: false,
+            fullscreenButton: false,
+            // automaticallyTrackDataSourceClocks:false,
+            animation: false,
+            shadows: true,
+            terrainShadows: Cesium.ShadowMode.ENABLED
+        });
+        //viewer.scene.globe.depthTestAgainstTerrain = true;
+        //viewer.scene.globe.castShadows = true;
+        viewer.scene.globe.enableLighting = true;
+        viewer.scene.imageryLayers.removeAll();
+        viewer.scene.globe.baseColor = Cesium.Color.GRAY;
+        /*viewer.scene.primitives.add(new Cesium.Primitive({
+          shadows : Cesium.ShadowMode.ENABLED,
+          appearance : new Cesium.PerInstanceColorAppearance({
+          translucent : false
+          })
+        }));*/
+        //viewer.clock.currentTime = new Cesium.JulianDate(location.date);
+        //viewer.clock.currentTime = new Cesium.JulianDate.now();
+        document.getElementsByClassName("cesium-viewer-bottom")[0].remove();
+        this.dataService.setViewer(viewer);
     }
     notify(message) {
         if (message === "model_update") {
@@ -9112,149 +9424,36 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
         }
     }
     LoadData(data) {
-        if (document.getElementsByClassName("cesium-viewer").length !== 0) {
-            document.getElementsByClassName("cesium-viewer")[0].remove();
-        }
-        const imageryViewModels = [];
-        imageryViewModels.push(new Cesium.ProviderViewModel({
-            name: "Stamen Toner",
-            iconUrl: Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/stamenToner.png"),
-            tooltip: "A high contrast black and white map.\nhttp://www.maps.stamen.com/",
-            creationFunction: function () {
-                return Cesium.createOpenStreetMapImageryProvider({
-                    url: "https://stamen-tiles.a.ssl.fastly.net/toner/",
-                });
-            },
-        }));
-        imageryViewModels.push(new Cesium.ProviderViewModel({
-            name: "Stamen Toner(Lite)",
-            iconUrl: Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/stamenToner.png"),
-            tooltip: "A high contrast black and white map(Lite).\nhttp://www.maps.stamen.com/",
-            creationFunction: function () {
-                return Cesium.createOpenStreetMapImageryProvider({
-                    url: "https://stamen-tiles.a.ssl.fastly.net/toner-lite/",
-                });
-            },
-        }));
-        imageryViewModels.push(new Cesium.ProviderViewModel({
-            name: "Terrain(Standard)",
-            iconUrl: Cesium.buildModuleUrl("Widgets/Images/TerrainProviders/CesiumWorldTerrain.png"),
-            tooltip: "A high contrast black and white map(Standard).\nhttp://www.maps.stamen.com/",
-            creationFunction: function () {
-                return Cesium.createOpenStreetMapImageryProvider({
-                    url: "https://stamen-tiles.a.ssl.fastly.net/terrain/",
-                });
-            },
-        }));
-        imageryViewModels.push(new Cesium.ProviderViewModel({
-            name: "Terrain(Background)",
-            iconUrl: Cesium.buildModuleUrl("Widgets/Images/TerrainProviders/CesiumWorldTerrain.png"),
-            tooltip: "A high contrast black and white map(Background).\nhttp://www.maps.stamen.com/",
-            creationFunction: function () {
-                return Cesium.createOpenStreetMapImageryProvider({
-                    url: "https://stamen-tiles.a.ssl.fastly.net/terrain-background/",
-                });
-            },
-        }));
-        imageryViewModels.push(new Cesium.ProviderViewModel({
-            name: "Open\u00adStreet\u00adMap",
-            iconUrl: Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/openStreetMap.png"),
-            tooltip: "OpenStreetMap (OSM) is a collaborative project to create a free editable \
-             map of the world.\nhttp://www.openstreetmap.org",
-            creationFunction: function () {
-                return Cesium.createOpenStreetMapImageryProvider({
-                    url: "https://a.tile.openstreetmap.org/",
-                });
-            },
-        }));
-        imageryViewModels.push(new Cesium.ProviderViewModel({
-            name: "Earth at Night",
-            iconUrl: Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/earthAtNight.png"),
-            tooltip: "The lights of cities and villages trace the outlines of civilization \
-                 in this global view of the Earth at night as seen by NASA/NOAA\'s Suomi NPP satellite.",
-            creationFunction: function () {
-                return new Cesium.IonImageryProvider({ assetId: 3812 });
-            },
-        }));
-        imageryViewModels.push(new Cesium.ProviderViewModel({
-            name: "Natural Earth\u00a0II",
-            iconUrl: Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/naturalEarthII.png"),
-            tooltip: "Natural Earth II, darkened for contrast.\nhttp://www.naturalearthdata.com/",
-            creationFunction: function () {
-                return Cesium.createTileMapServiceImageryProvider({
-                    url: Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII"),
-                });
-            },
-        }));
-        imageryViewModels.push(new Cesium.ProviderViewModel({
-            name: "Blue Marble",
-            iconUrl: Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/blueMarble.png"),
-            tooltip: "Blue Marble Next Generation July, 2004 imagery from NASA.",
-            creationFunction: function () {
-                return new Cesium.IonImageryProvider({ assetId: 3845 });
-            },
-        }));
-        const viewer = new Cesium.Viewer("cesiumContainer", {
-            infoBox: false,
-            imageryProviderViewModels: imageryViewModels,
-            selectedImageryProviderViewModel: imageryViewModels[0],
-            timeline: false,
-            fullscreenButton: false,
-            automaticallyTrackDataSourceClocks: false,
-            animation: false,
-        });
-        document.getElementsByClassName("cesium-viewer-bottom")[0].remove();
         if (this.data !== undefined) {
-            this.viewer = viewer;
-            this.dataService.setViewer(this.viewer);
+            const viewer = this.dataService.getViewer();
+            viewer.dataSources.removeAll();
+            //viewer.scene.primitives.remove(this.dataService.getcesiumpromise());
+            //const new_viewer = new Cesium.Viewer("cesiumContainer");
             this.data = data;
-            this.poly_center = [];
             const promise = Cesium.GeoJsonDataSource.load(this.data);
-            const self = this;
+            viewer.dataSources.add(promise);
             const _HeightKey = [];
             promise.then(function (dataSource) {
-                viewer.dataSources.add(dataSource);
                 const entities = dataSource.entities.values;
-                for (const entity of entities) {
-                    let poly_center = [];
-                    if (entity.polygon !== undefined) {
-                        entity.polygon.outlineColor = Cesium.Color.Black;
-                        const center = Cesium.BoundingSphere.fromPoints(entity.polygon.hierarchy.getValue().positions).center;
-                        const radius = Math.min(Math.round(Cesium.BoundingSphere.fromPoints(entity.polygon.hierarchy.getValue().positions).radius / 100), 10);
-                        const longitudeString = Cesium.Math.toDegrees(Cesium.Ellipsoid.WGS84.
-                            cartesianToCartographic(center).longitude).toFixed(10);
-                        const latitudeString = Cesium.Math.toDegrees(Cesium.Ellipsoid.WGS84.cartesianToCartographic(center).
-                            latitude).toFixed(10);
-                        poly_center = [longitudeString, latitudeString, radius];
-                        self.poly_center.push(poly_center);
-                    }
-                    if (entity.billboard !== undefined) {
-                        entity.billboard = undefined;
-                        entity.point = new Cesium.PointGraphics({
-                            color: Cesium.Color.BLUE,
-                            pixelSize: 10,
-                        });
-                    }
-                }
+                const self = this;
                 if (entities[0].polygon !== undefined) {
                     self._ShowColorBar = true;
                 }
                 else {
                     self._ShowColorBar = false;
                 }
-                self.dataService.setpoly_center(self.poly_center);
             });
             this.dataService.setcesiumpromise(promise);
             if (this.mode === "editor") {
                 this.dataService.getValue(this.data);
                 this.dataService.LoadJSONData();
                 this.dataArr = this.dataService.get_ViData();
-                this._index = 0;
+                this._index = 1;
             }
             if (this.mode === "viewer") {
                 this.dataService.LoadJSONData();
                 this.dataArr = this.dataService.get_PuData();
-                this._index = 2;
+                this._index = 3;
             }
             viewer.homeButton.viewModel.command.beforeExecute.addEventListener(function (e) {
                 e.cancel = true;
@@ -9268,10 +9467,10 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
         if (this.dataArr !== undefined) {
             if (this._index !== this.dataService.get_index()) {
                 this._index = this.dataService.get_index();
-                if (this._index === 0) {
+                if (this._index === 1) {
                     this.dataArr = this.dataService.get_ViData();
                 }
-                else if (this._index === 2) {
+                else if (this._index === 3) {
                     this.dataArr = this.dataService.get_PuData();
                 }
             }
@@ -9318,7 +9517,7 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
                     for (let j = 0; j < texts.length; j++) {
                         _ColorKey = [];
                         _ColorKey.text = texts[j];
-                        _ColorKey.color = _ChromaScale(j / texts.length);
+                        _ColorKey.color = _ChromaScale(1 - (j / texts.length)); //_ChromaScale(j/texts.length);
                         this._Cattexts.push(_ColorKey);
                     }
                 }
@@ -9352,7 +9551,7 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
     }
     select() {
         event.stopPropagation();
-        const viewer = this.viewer;
+        const viewer = this.dataService.getViewer(); //this.viewer;
         if (this.dataArr !== undefined) {
             if (this.selectEntity !== undefined && this.selectEntity !== null) {
                 this.ColorSelect(this.selectEntity);
@@ -9397,30 +9596,43 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
             _ChromaScale = __WEBPACK_IMPORTED_MODULE_2_chroma_js__["scale"]("SPECTRAL").domain([1, 0]);
         }
         let _CheckHide;
-        if (_Filter.length !== 0) {
-            _CheckHide = this.Hide(_Filter, entity, _HeightChart);
-            if (_CheckHide === true) {
-                if (entity.polygon !== undefined) {
-                    entity.polygon.extrudedHeight = 0;
-                    entity.polygon.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
-                    if (_HeightChart === true) {
-                        if (entity.polyline !== undefined) {
-                            entity.polyline.show = false;
+        if (entity.properties["TYPE"] === undefined || entity.properties["TYPE"]._value !== "STATIC") {
+            if (_Filter.length !== 0) {
+                _CheckHide = this.Hide(_Filter, entity, _HeightChart);
+                if (_CheckHide === true) {
+                    if (entity.polygon !== undefined) {
+                        entity.polygon.extrudedHeight = 0;
+                        entity.polygon.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
+                        if (_HeightChart === true) {
+                            if (entity.polyline !== undefined) {
+                                entity.polyline.show = false;
+                            }
                         }
                     }
+                    if (entity.polyline !== undefined) {
+                        entity.polyline.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
+                    }
                 }
-                if (entity.polyline !== undefined) {
-                    entity.polyline.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
+            }
+            if (_Filter.length === 0 || _CheckHide === false) {
+                if (_ColorKey !== "None") {
+                    if (typeof (_ColorText[0]) === "number") {
+                        this.colorByNum(entity, _ColorMax, _ColorMin, _ColorKey, _ChromaScale);
+                    }
+                    else {
+                        this.colorByCat(entity, _ColorText, _ColorKey, _ChromaScale);
+                    }
+                }
+                else {
+                    entity.polygon.material = Cesium.Color.GOLD.withAlpha(0.8);
                 }
             }
         }
-        if (_Filter.length === 0 || _CheckHide === false) {
-            if (typeof (_ColorText[0]) === "number") {
-                this.colorByNum(entity, _ColorMax, _ColorMin, _ColorKey, _ChromaScale);
-            }
-            else {
-                this.colorByCat(entity, _ColorText, _ColorKey, _ChromaScale);
-            }
+        else {
+            entity.polygon.height = entity.properties["HEIGHT"];
+            entity.polygon.extrudedHeight = entity.properties["EXTRUHEIGHT"];
+            const ColorValue = entity.properties["COLOR"]._value;
+            entity.polygon.material = Cesium.Color.fromBytes(ColorValue[0], ColorValue[1], ColorValue[2], ColorValue[3]);
         }
     }
     Hide(_Filter, entity, _HeightChart) {
@@ -9434,7 +9646,7 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
                     }
                 }
                 else if (typeof (value) === "string") {
-                    if (this._compareCat(value, filter.textHide, Number(filter.RelaHide))) {
+                    if (this._compareCat(value, filter.CategaryHide, Number(filter.RelaHide))) {
                         _CheckHide = true;
                     }
                 }
@@ -9449,7 +9661,7 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
             case 1:
                 return value > slider;
             case 2:
-                return value === slider;
+                return value !== slider;
         }
     }
     _compareCat(value, _Categary, relation) {
@@ -9479,7 +9691,7 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
             let initial = false;
             for (let j = 0; j < _ColorText.length; j++) {
                 if (entity.properties[_ColorKey]._value === _ColorText[j]) {
-                    const rgb = _ChromaScale((j / _ColorText.length).toFixed(2));
+                    const rgb = _ChromaScale(1 - (j / _ColorText.length)); // _ChromaScale((j/_ColorText.length).toFixed(2));
                     entity.polygon.material = Cesium.Color.fromBytes(rgb._rgb[0], rgb._rgb[1], rgb._rgb[2]);
                     initial = true;
                 }
@@ -9490,19 +9702,20 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
         }
     }
     showAttribs(event) {
+        const viewer = this.dataService.getViewer();
         if (this.data !== undefined && this.mode === "viewer") {
             if (this.data["cesium"] !== undefined) {
                 if (this.data["cesium"].select !== undefined) {
-                    if (this.viewer.selectedEntity !== undefined) {
-                        const pickup = this.viewer.scene.pick(new Cesium.Cartesian2(event.clientX, event.clientY));
+                    if (viewer.selectedEntity !== undefined) {
+                        const pickup = viewer.scene.pick(new Cesium.Cartesian2(event.clientX, event.clientY));
                         this.pickupArrs = [];
                         this.pickupArrs.push({ name: "ID", data: pickup.id.id });
                         for (const _propertyName of this.data["cesium"].select) {
                             this.pickupArrs.push({ name: _propertyName, data: this.dataService.get_SelectedEntity().properties[_propertyName]._value });
                         }
                         const nameOverlay = document.getElementById("cesium-infoBox-defaultTable");
-                        this.viewer.container.appendChild(nameOverlay);
-                        nameOverlay.style.bottom = this.viewer.canvas.clientHeight - event.clientY + "px";
+                        viewer.container.appendChild(nameOverlay);
+                        nameOverlay.style.bottom = viewer.canvas.clientHeight - event.clientY + "px";
                         nameOverlay.style.left = event.clientX + "px";
                         nameOverlay.style.display = "block";
                     }
@@ -9512,6 +9725,12 @@ let ViewerComponent = class ViewerComponent extends __WEBPACK_IMPORTED_MODULE_1_
                 }
             }
         }
+    }
+    // save the geojson
+    save_geojson() {
+        let fileString = JSON.stringify(this.data);
+        let blob = new Blob([fileString], { type: 'application/json' });
+        FileUtils.downloadContent(blob, "output.geojson");
     }
 };
 ViewerComponent = __decorate([
@@ -9523,6 +9742,25 @@ ViewerComponent = __decorate([
     __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_0__angular_core__["D" /* Injector */], __WEBPACK_IMPORTED_MODULE_0__angular_core__["u" /* ElementRef */]])
 ], ViewerComponent);
 
+class FileUtils {
+    static downloadContent(blob, filename) {
+        if (window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveOrOpenBlob(blob, filename);
+        }
+        else {
+            const a = document.createElement('a');
+            document.body.appendChild(a);
+            const url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = filename;
+            a.click();
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            }, 0);
+        }
+    }
+}
 
 
 /***/ }),
