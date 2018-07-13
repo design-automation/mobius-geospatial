@@ -1,15 +1,15 @@
-import { Component, OnInit, Injector, ElementRef ,NgModule} from '@angular/core';
+import { Component, OnInit, Injector, ElementRef ,NgModule} from "@angular/core";
 import {DataSubscriber} from "../data/DataSubscriber";
 import { DataService } from "../data/data.service";
 import {ViewerComponent} from "../viewer/viewer.component";
 import * as chroma from "chroma-js";
 
 @Component({
-  selector: "app-visualise",
+  selector: "app-data",
   templateUrl: "./visualise.component.html",
   styleUrls: ["./visualise.component.css"],
 })
-export class VisualiseComponent extends DataSubscriber implements OnInit {
+export class DataComponent extends DataSubscriber implements OnInit {
   private myElement;
   private dataArr: object;
   private _ColorProperty: any[];
@@ -22,6 +22,7 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
   private _ExtrudeMin: number;
   private _HeightChart: boolean;
   private _Invert: boolean;
+  private _ColorInvert: boolean;
   private _Scale: number;
   private _Filter: any[];
   private _HideNum: any[];
@@ -52,6 +53,7 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
     this._ColorKey = this.dataArr["ColorKey"];
     this._ColorMax = this.dataArr["ColorMax"];
     this._ColorMin = this.dataArr["ColorMin"];
+    this._ColorInvert = this.dataArr["ColorInvert"];
     this._ExtrudeProperty = this.dataArr["ExtrudeProperty"];
     this._ExtrudeKey = this.dataArr["ExtrudeKey"];
     this._ExtrudeMax = this.dataArr["ExtrudeMax"];
@@ -149,6 +151,11 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
     this.dataArr["Invert"] = this._Invert;
     this.dataService.set_ViData(this.dataArr);
   }
+  public changeColorInvert() {
+    this._ColorInvert =! this._ColorInvert;
+    this.dataArr["ColorInvert"] = this._ColorInvert;
+    this.dataService.set_ViData(this.dataArr);
+  }
 
   public changeExtrude() {
     this._HeightChart =! this._HeightChart;
@@ -175,8 +182,8 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
     if(this._HideValue === undefined) {this._HideValue = this._ColorProperty[0];}
     const texts = this.Initial(this._HideValue);
     let _HideType: string;
-    if(typeof(texts[0]) === "number") {_HideType = "number";
-    } else if(typeof(texts[0]) === "string") {_HideType = "category";}
+    if(typeof(texts[0]) === "number") { _HideType = "number";
+    } else if(typeof(texts[0]) === "string") { _HideType = "category"; }
     this._Filter.push({divid:String("addHide".concat(String(lastnumber))),id: lastnumber,
                        HeightHide:this._HideValue,type:_HideType,Category:texts,CategaryHide:texts[0],
                        RelaHide:0,textHide: Math.round(Math.min.apply(Math, texts)*100)/100,
@@ -217,7 +224,6 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
     const addHide = document.getElementById(divid);
     if(this._Filter[index].Disabletext === null) {this._CheckDisable = false;} else {this._CheckDisable = true;}
     if(this._CheckDisable === false) {
-      addHide.style.background = "grey";
       if(this._Filter[index].type === "number") {
         const textHide = this._Filter[index].textHide;
         this._Filter[index].Disabletext = Number(textHide);
@@ -233,7 +239,6 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
         this._Filter[index].RelaHide = 0;
       }
     } else {
-      addHide.style.background = null;
       if(this._Filter[index].type === "number") {
         this._Filter[index].textHide = this._Filter[index].Disabletext;
         this._Filter[index].Disabletext = null;
@@ -251,7 +256,7 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
     this._HideValue = _HeightHide;
   }
 
-  public Changerelation(_RelaHide: any,id: number) {
+  public Changerelation(_RelaHide: any, id: number) {
     const index = this._HideNum.indexOf(id);
     const HeightHide = this._Filter[index].HeightHide;
     this._Filter[index].RelaHide = _RelaHide;
@@ -277,7 +282,7 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
     if(_RelaHide==="1"||_RelaHide === 1) {this._Filter[index].textHide = this._Filter[index].HideMax;}
   }
 
-  public ChangeCategory(categary: string,id: number,type: number) {
+  public ChangeCategory(categary: string, id: number, type: number) {
     const index = this._HideNum.indexOf(id);
     if(type === 1) {
       this._Filter[index].CategaryHide = categary;
@@ -287,7 +292,7 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
     }
   }
 
-  public Changetext(value: string,id: number) {
+  public Changetext(value: string, id: number) {
     const index = this._HideNum.indexOf(id);
     this._Filter[index].textHide = value;
   }
@@ -310,12 +315,5 @@ export class VisualiseComponent extends DataSubscriber implements OnInit {
       }
     });
     return texts;
-  }
-
-  public changeImagery() {
-    if(this.dataService.getViewer() !== undefined) {
-      this.dataService.getViewer().scene.imageryLayers.removeAll();
-      this.dataService.getViewer().scene.globe.baseColor = Cesium.Color.GRAY;
-    }
   }
 }

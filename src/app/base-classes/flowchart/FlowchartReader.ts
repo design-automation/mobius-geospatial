@@ -18,6 +18,8 @@ export abstract class FlowchartReader{
 	    let nodes_data: IGraphNode[] = data["_nodes"];
 	    let edges_data: IEdge[] = data["_edges"];
 
+	    console.log("original data: ", fc);
+
 	    /// adding all nodes
 	    for(let node_data of nodes_data){	
 	    	let n: IGraphNode = NodeUtils.copy_node(node_data, true);
@@ -44,6 +46,8 @@ export abstract class FlowchartReader{
 	    		console.warn(`Skipped creating edge between ${in_node} and ${out_node}`)
 	    	}
 	    }
+
+		console.log("recreated fc: ", fc);
 
 	    return fc;
 	}

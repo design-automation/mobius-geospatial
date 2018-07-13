@@ -12,12 +12,12 @@ export class DataService {
   private cesiumpromise: any;
   private hideElementArr: any[];
   private _HideNum: any[];
-  private poly_center: any[];
   private mode: string;
   private _ViData: object;
   private _PuData: object;
   private _index: number;
   private _Filter: any[];
+  private _Imagery: string;
 
   public sendMessage(message?: string) {
     this.subject.next({text: message});
@@ -38,12 +38,21 @@ export class DataService {
   }
 
   public setGsModel(model: JSON) {
+    delete this._jsonModel;
+    const json = this._jsonModel;
     this._jsonModel = model;
-
-    if(this._jsonModel === undefined) {
-      const viewer = new Cesium.Viewer(document.createElement("div"));
-    }
+    if(this._jsonModel !== undefined){this.clearAll();}
     this.sendMessage("model_update");
+    
+  }
+  public clearAll(){
+    delete this.hideElementArr;
+    delete this._HideNum;
+    delete this._ViData;
+    delete this._PuData;
+    delete this._index;
+    delete this._Filter;
+
   }
   public getViewer(): any {
     return this.viewer;
@@ -61,6 +70,7 @@ export class DataService {
     return this.cesiumpromise;
   }
   public setcesiumpromise(cesiumpromise): void {
+    delete this.cesiumpromise;
     this.cesiumpromise = cesiumpromise;
   }
   public gethideElementArr(): any {
@@ -68,12 +78,6 @@ export class DataService {
   }
   public get_HideNum(): any[] {
     return this._HideNum;
-  }
-  public getpoly_center(): any[] {
-    return this.poly_center;
-  }
-  public setpoly_center(poly_center): void {
-    this.poly_center = poly_center;
   }
   public getmode(): string {
     return this.mode;
@@ -84,44 +88,184 @@ export class DataService {
   public set_index(_index): void {
     this._index = _index;
   }
+  /*public set_imageryViewModels() :void{
+    this._imageryViewModels.push(new Cesium.ProviderViewModel({
+     name : "Stamen Toner",
+     iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/stamenToner.png"),
+     tooltip : "A high contrast black and white map.\nhttp://www.maps.stamen.com/",
+     creationFunction : function() {
+         return Cesium.createOpenStreetMapImageryProvider({
+             url : "https://stamen-tiles.a.ssl.fastly.net/toner/",
+         });
+     },
+    }));
+    this._imageryViewModels.push(new Cesium.ProviderViewModel({
+     name : "Stamen Toner(Lite)",
+     iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/stamenToner.png"),
+     tooltip : "A high contrast black and white map(Lite).\nhttp://www.maps.stamen.com/",
+     creationFunction : function() {
+         return Cesium.createOpenStreetMapImageryProvider({
+             url : "https://stamen-tiles.a.ssl.fastly.net/toner-lite/",
+         });
+     },
+    }));
+    this._imageryViewModels.push(new Cesium.ProviderViewModel({
+     name : "Terrain(Standard)",
+     iconUrl : Cesium.buildModuleUrl("Widgets/Images/TerrainProviders/CesiumWorldTerrain.png"),
+     tooltip : "A high contrast black and white map(Standard).\nhttp://www.maps.stamen.com/",
+     creationFunction : function() {
+         return Cesium.createOpenStreetMapImageryProvider({
+             url : "https://stamen-tiles.a.ssl.fastly.net/terrain/",
+         });
+     },
+    }));
+    this._imageryViewModels.push(new Cesium.ProviderViewModel({
+     name : "Terrain(Background)",
+     iconUrl : Cesium.buildModuleUrl("Widgets/Images/TerrainProviders/CesiumWorldTerrain.png"),
+     tooltip : "A high contrast black and white map(Background).\nhttp://www.maps.stamen.com/",
+     creationFunction : function() {
+         return Cesium.createOpenStreetMapImageryProvider({
+             url : "https://stamen-tiles.a.ssl.fastly.net/terrain-background/",
+         });
+     },
+    }));
+    this._imageryViewModels.push(new Cesium.ProviderViewModel({
+     name : "Open\u00adStreet\u00adMap",
+     iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/openStreetMap.png"),
+     tooltip : "OpenStreetMap (OSM) is a collaborative project to create a free editable \
+             map of the world.\nhttp://www.openstreetmap.org",
+     creationFunction : function() {
+         return Cesium.createOpenStreetMapImageryProvider({
+             url : "https://a.tile.openstreetmap.org/",
+         });
+     },
+    }));
+
+    this._imageryViewModels.push(new Cesium.ProviderViewModel({
+     name : "Earth at Night",
+     iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/earthAtNight.png"),
+     tooltip : "The lights of cities and villages trace the outlines of civilization \
+                 in this global view of the Earth at night as seen by NASA/NOAA\'s Suomi NPP satellite.",
+     creationFunction : function() {
+         return new Cesium.IonImageryProvider({ assetId: 3812 });
+     },
+    }));
+
+    this._imageryViewModels.push(new Cesium.ProviderViewModel({
+     name : "Natural Earth\u00a0II",
+     iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/naturalEarthII.png"),
+     tooltip : "Natural Earth II, darkened for contrast.\nhttp://www.naturalearthdata.com/",
+     creationFunction : function() {
+         return Cesium.createTileMapServiceImageryProvider({
+             url : Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII"),
+         });
+     },
+    }));
+
+    this._imageryViewModels.push(new Cesium.ProviderViewModel({
+     name : "Blue Marble",
+     iconUrl : Cesium.buildModuleUrl("Widgets/Images/ImageryProviders/blueMarble.png"),
+     tooltip : "Blue Marble Next Generation July, 2004 imagery from NASA.",
+     creationFunction : function() {
+         return new Cesium.IonImageryProvider({ assetId: 3845 });
+     },
+    }));
+  }
+  public get_imageryViewModels(): any[] {
+    return this._imageryViewModels;
+  }*/
+  public set_Imagery(_Imagery): void {
+    this._Imagery = _Imagery;
+  }
+  public get_Imagery(): string {
+    return this._Imagery;
+  }
 
   public getValue(model: JSON) {
     if(model !== undefined) {
-      const propertyNames = Object.keys(model["features"][0].properties);
+      let propertyName = Object.keys(model["features"][0].properties);
+      let feature_instance;
+      let property = propertyName;
+      if(model["features"].length>1){
+        for(let i = 1 ;i<model["features"].length;i++){
+          property = property.concat(Object.keys(model["features"][i].properties));
+        }
+      }
+      propertyName = property.reduce(function(a,b){
+        if (a.indexOf(b) < 0 ) a.push(b);
+           return a;
+      },[]);
+      /*for(let i = 0 ;i<model["features"].length;i++){
+        if(model["features"][i].geometry.type === "Polygon"){
+           propertyName= Object.keys(model["features"][i].properties);
+           feature_instance = model["features"][i];
+          break;
+        }
+      }*/
+      propertyName.sort();
+      propertyName.unshift("None");
+      const propertyNames = propertyName.filter(function(value) { 
+        return value != 'TYPE'&& value != 'COLOR'&& value != 'HEIGHT'&&value != 'EXTRUHEIGHT'
+      });
       const _ColorValue = propertyNames[0];
-      propertyNames.sort();
-      propertyNames.unshift("None");
-
-      const feature_instance = model["features"][0];
+      
+      for(let i = 0 ;i<model["features"].length;i++){
+        if(model["features"][i].geometry.type === "Polygon"||model["features"][i].geometry.type === "MultiPolygon"){
+           //propertyName= Object.keys(model["features"][i].properties);
+          feature_instance = model["features"][i];
+          break;
+        }
+      }
       const _HeightKey = propertyNames.filter(function(prop_name) {
         const value =  feature_instance.properties[prop_name];
         return (typeof(value) === "number");
       });
-      const _HeightValue = _HeightKey[0];
+
       _HeightKey.sort();
       _HeightKey.unshift("None");
+      const _HeightValue = _HeightKey[0];
 
       const promise = this.cesiumpromise;
       const _Heighttexts: any[] = [];
       const _Colortexts: any[] = [];
+      const _indexArr: number[] = [];
+      const self = this;
       promise.then(function(dataSource) {
         const entities = dataSource.entities.values;
         for (const entity of entities) {
-          if(entity.properties[_HeightValue] !== undefined) {
-            if(entity.properties[_HeightValue]._value !== " ") {
-              if(_Heighttexts.length === 0) {_Heighttexts[0]=entity.properties[_HeightValue]._value;
-              } else { if(_Heighttexts.indexOf(entity.properties[_HeightValue]._value) === -1) {
-               _Heighttexts.push(entity.properties[_HeightValue]._value);}
+          if(entity.properties["TYPE"] === undefined||entity.properties["TYPE"]._value !== "STATIC"){
+            if(entity.properties[_HeightValue] !== undefined) {
+              if(entity.properties[_HeightValue]._value !== " ") {
+                if(_Heighttexts.length === 0) {_Heighttexts[0]=entity.properties[_HeightValue]._value;
+                } else { if(_Heighttexts.indexOf(entity.properties[_HeightValue]._value) === -1) {
+                 _Heighttexts.push(entity.properties[_HeightValue]._value);}
+                }
               }
             }
+            if(entity.properties[_ColorValue] !== undefined) {
+              if(entity.properties[_ColorValue]._value !== " ") {
+                if(_Colortexts.length === 0) {_Colortexts[0] = entity.properties[_ColorValue]._value;
+                } else { if(_Colortexts.indexOf(entity.properties[_ColorValue]._value) === -1) {
+                  _Colortexts.push(entity.properties[_ColorValue]._value);}
+                }
+              }
+            }
+            _indexArr.push(entities.indexOf(entity));
+          } else {
+            entity.polygon.height =  entity.properties["HEIGHT"];
+            entity.polygon.extrudedHeight = entity.properties["EXTRUHEIGHT"];
+            const ColorValue = entity.properties["COLOR"]._value;
+            entity.polygon.material = Cesium.Color.fromBytes(ColorValue[0], ColorValue[1], ColorValue[2], ColorValue[3]);
           }
-          if(entity.properties[_ColorValue] !== undefined) {
-            if(entity.properties[_ColorValue]._value !== " ") {
-              if(_Colortexts.length === 0) {_Colortexts[0] = entity.properties[_ColorValue]._value;
-              } else { if(_Colortexts.indexOf(entity.properties[_ColorValue]._value) === -1) {
-                _Colortexts.push(entity.properties[_ColorValue]._value);}
-              }
+          if(entity.polygon !== undefined) {
+              entity.polygon.outlineColor = Cesium.Color.Black;
             }
+          if(entity.billboard !== undefined) {
+            entity.billboard = undefined;
+            entity.point = new Cesium.PointGraphics({
+              color: Cesium.Color.BLUE,
+              pixelSize: 10,
+            });
           }
         }
       });
@@ -133,7 +277,7 @@ export class DataService {
       const _HideNum: any[] = [];
       this.getViData(propertyNames,_Colortexts.sort(),_ColorValue,_MinColor,_MaxColor,false,
                      _HeightKey,_Heighttexts.sort(),_HeightValue,_MinHeight,_MaxHeight,1,
-                     false,false,_Filter,_HideNum);
+                     false,false,_Filter,_HideNum,_indexArr);
     }
   }
   public get_ViData(): object {
@@ -163,6 +307,7 @@ export class DataService {
       const _ceisumData: any[] = [];
       const _propertyNames: any[] = [];
       const _HideNum: any[] = [];
+      const _indexArr: number[] = [];
       if(cesiumData["colour"] !== undefined) {
         if(cesiumData["colour"]["descr"] !== undefined) {
           _ColorDescr = cesiumData["colour"]["descr"];
@@ -200,6 +345,7 @@ export class DataService {
       const promise = this.cesiumpromise;
       const _Heighttexts = [];
       const _Colortexts = [];
+      const self = this;
       promise.then(function(dataSource) {
         const entities = dataSource.entities.values;
         for (const entity of entities) {
@@ -219,6 +365,17 @@ export class DataService {
               }
             }
           }
+          if(entity.polygon !== undefined) {
+            entity.polygon.outlineColor = Cesium.Color.Black;
+          }
+          if(entity.billboard !== undefined) {
+            entity.billboard = undefined;
+            entity.point = new Cesium.PointGraphics({
+              color: Cesium.Color.BLUE,
+              pixelSize: 10,
+            });
+          }
+          _indexArr.push(entities.indexOf(entity));
         }
       });
       if(cesiumData["filters"] !== undefined) {
@@ -266,12 +423,12 @@ export class DataService {
       } else {this._Filter = [];this._HideNum = [];}
       this.getPuData(_ColorDescr,_propertyNames,_Colortexts.sort(),_ColorValue,_MinColor,_MaxColor,_ColorInvert,
                         _HeightDescr,_HeightKey,_Heighttexts.sort(),_HeightValue,_MinHeight,_MaxHeight,
-                        _HeightScale,_HeightInvert,_HeightLine,this._Filter,this._HideNum);
+                        _HeightScale,_HeightInvert,_HeightLine,this._Filter,this._HideNum,_indexArr);
 
     }
 
   }
-   public  Initial(_HideValue: string): any[] {
+  public  Initial(_HideValue: string): any[] {
     const texts=[];
     const promise = this.getcesiumpromise();
     const self = this;
@@ -301,24 +458,24 @@ export class DataService {
                    _ColorMin: number,_ColorMax: number,_ColorInvert: boolean,
                    _ExtrudeProperty: any[],_ExtrudeText: any[],_ExturdeValue: string,
                    _ExtrudeMin: number,_ExtrudeMax: number,_Scale: number,_Invert: boolean,
-                   _HeightChart: boolean,_Filter: any[],_HideNum: number[]) {
+                   _HeightChart: boolean,_Filter: any[],_HideNum: number[],_indexArr: number[]) {
     this._ViData = {ColorProperty:_ColorProperty,ColorText:_ColorText,ColorKey:_ColorKey,
                     ColorMin:_ColorMin,ColorMax:_ColorMax,ColorInvert:_ColorInvert,
                     ExtrudeProperty:_ExtrudeProperty,ExtrudeText:_ExtrudeText,ExtrudeKey:_ExturdeValue,
                     ExtrudeMin:_ExtrudeMin,ExtrudeMax:_ExtrudeMax,Scale:_Scale,Invert:_Invert,
-                    HeightChart:_HeightChart,Filter:_Filter,HideNum:_HideNum};
+                    HeightChart:_HeightChart,Filter:_Filter,HideNum:_HideNum,indexArr:_indexArr};
   }
 
   public getPuData(_ColorDescr: string,_ColorProperty: any[],_ColorText: any[],_ColorKey: string,
                    _ColorMin: number,_ColorMax: number,_ColorInvert: boolean,
                    _ExtrudeDescr: string,_ExtrudeProperty: any[],_ExtrudeText: any[],
                    _ExturdeValue: string,_ExtrudeMin: number,_ExtrudeMax: number,_Scale: number,_Invert: boolean,
-                   _HeightChart: boolean,_Filter: any[],_HideNum: number[]) {
+                   _HeightChart: boolean,_Filter: any[],_HideNum: number[],_indexArr: number[]) {
     this._PuData = {ColorDescr:_ColorDescr,ColorProperty:_ColorProperty,ColorText:_ColorText,
                     ColorKey:_ColorKey,ColorMin:_ColorMin,ColorMax:_ColorMax,ColorInvert:_ColorInvert,
                     ExtrudeDescr:_ExtrudeDescr,ExtrudeProperty:_ExtrudeProperty,ExtrudeText:_ExtrudeText,
                     ExtrudeKey:_ExturdeValue,ExtrudeMin:_ExtrudeMin,ExtrudeMax:_ExtrudeMax,
-                    Scale:_Scale,Invert:_Invert,HeightChart:_HeightChart,Filter:_Filter,HideNum:_HideNum};
+                    Scale:_Scale,Invert:_Invert,HeightChart:_HeightChart,Filter:_Filter,HideNum:_HideNum,indexArr:_indexArr};
   }
 
 }

@@ -5,11 +5,11 @@ import {ViewerComponent} from "../viewer/viewer.component";
 import * as chroma from "chroma-js";
 
 @Component({
-  selector: "app-attributes",
+  selector: "app-select",
   templateUrl: "./attributes.component.html",
   styleUrls: ["./attributes.component.css"],
 })
-export class AttributesComponent extends DataSubscriber implements OnInit {
+export class SelectComponent extends DataSubscriber implements OnInit {
   private myElement;
   private data: JSON;
   private mode: string;
@@ -31,7 +31,6 @@ export class AttributesComponent extends DataSubscriber implements OnInit {
     if(message === "model_update" ) {
       this.data = this.dataService.getGsModel();
       this.mode = this.dataService.getmode();
-      this.viewer = this.dataService.getViewer();
       this.dataArr = this.dataService.get_ViData();
     }
   }
@@ -46,7 +45,9 @@ export class AttributesComponent extends DataSubscriber implements OnInit {
           if(_ColorPro !== "None") {
             _Property = [];
             _Property.Name = _ColorPro;
-            _Property.Value = this.dataService.get_SelectedEntity().properties[_Property.Name]._value;
+            if(this.dataService.get_SelectedEntity().properties[_Property.Name]!==undefined){
+              _Property.Value = this.dataService.get_SelectedEntity().properties[_Property.Name]._value;
+            }else {_Property.Value = ' ';}
             this._Properties.push(_Property);
           }
         }

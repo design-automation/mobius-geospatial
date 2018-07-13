@@ -22,44 +22,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 			let connector_lines: any = [];
 			let code_block: string = "";
 
-			/*let nodeOrder: number[] = FlowchartUtils.get_node_order(flowchart);
-			let all_nodes: IGraphNode[] = flowchart.nodes;
-			let all_edges: IEdge[] = flowchart.edges;
-
-			// connector lines
-			for(let c=0; c < all_edges.length; c++){
-
-				let edge: IEdge = all_edges[c];
-				let input_node: IGraphNode = flowchart.nodes[edge.input_address[0]];
-				let output_node: IGraphNode = flowchart.nodes[edge.output_address[0]];
-
-				// create line assigning values
-				let code = this.get_code_connection_line(input_node, edge.input_address[1], 
-														output_node, edge.output_address[1]);
-
-				if(connector_lines[edge.input_address[0]] == undefined){
-					connector_lines[edge.input_address[0]] = [];
-				} 
-
-				connector_lines[edge.input_address[0]].push(code);
-			}
-			
-			for(let c=0; c < nodeOrder.length; c++){
-				// check inputs connected to outputs
-				var nodeIndex = nodeOrder[c];
-				var node = all_nodes[nodeIndex];
-				code_defs.push(this.get_code_node(node, undefined, true));
-
-				if(connector_lines[nodeIndex] !== undefined){
-					fn_calls.push(connector_lines[nodeIndex].join("\n"));
-				}
-
-				fn_calls.push( this.get_code_function_call(node) );
-			}
-
-			code_block = code_defs.join(";\n\n") + "\n" + fn_calls.join("\n");*/
 			return "Currently Unavailable";
-			//return code_block;
 		}
 
 		get_code_function_call(node: IGraphNode, params?: any, executionCode?: boolean): string{
@@ -379,7 +342,6 @@ export class CodeGeneratorJS extends CodeGenerator{
 					this.get_code_function_call(node, [], true) + "\n" + 
 					"return " + node.name + ";" 
 
-			console.log(print)
 			console.log(`Generated Script: ${str}`);
 
 			let result: any;
