@@ -2545,7 +2545,6 @@ class Procedure {
         this._type = type;
         this._level = 0;
         this.hasChildren = hasChildren;
-        this._children = this._children;
         this._error = false;
     }
     get enabled() {
@@ -2634,8 +2633,7 @@ class Procedure {
         //this._rightComponent = prodData._rightComponent; 
         this._parent = parent;
         this._level = prodData._level;
-        this.hasChildren = prodData.hasChildren;
-        this.children = [];
+        this._children = [];
         this._error = false;
     }
 }
@@ -2695,23 +2693,6 @@ class ProcedureFactory {
             default:
                 throw Error(`Invalid Procedure Type: ${type}`);
         }
-    }
-    static getProcedureFromData(procedureData, parent) {
-        let procedure;
-        if (procedureData["_type"] == "Function") {
-            procedure = new __WEBPACK_IMPORTED_MODULE_8__FunctionProcedure__["a" /* FunctionProcedure */]({ node: procedureData["node"], port: procedureData["port"] });
-        }
-        else {
-            procedure = ProcedureFactory.getProcedure(procedureData["_type"]);
-        }
-        procedure.update(procedureData, undefined);
-        if (procedureData.children !== undefined) {
-            for (let child = 0; child < procedureData.children.length; child++) {
-                let childProd = procedureData.children[child];
-                procedure.children.push(ProcedureFactory.getProcedureFromData(childProd, procedure));
-            }
-        }
-        return procedure;
     }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = ProcedureFactory;
@@ -2774,8 +2755,14 @@ class ProcedureUtils {
         //todo: bad programming!
         let id = n.id;
         n.update(procedure, procedure.parent);
-        if (procedure.children) {
-            n.children = procedure.children.map((p) => {
+        //
+        // TODO: Design Issue?
+        // If it is procedure data, the propery is _children
+        // If it is a procedure object, the property is children
+        //
+        let child_prop = procedure.children ? "children" : "_children";
+        if (procedure[child_prop]) {
+            n.children = procedure[child_prop].map((p) => {
                 let pc = ProcedureUtils.copy_procedure(p);
                 pc.parent = n;
                 return pc;
@@ -2880,8 +2867,8 @@ class StatementProcedure extends __WEBPACK_IMPORTED_MODULE_0__Procedure__["a" /*
         super.right = (undefined);
     }
     update(prodData, parent) {
-        // do nothing
-        //console.error("This shouldn't be updated");
+        super.update(prodData, parent);
+        this._leftComponent.expression = prodData._leftComponent.expression;
     }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = StatementProcedure;
