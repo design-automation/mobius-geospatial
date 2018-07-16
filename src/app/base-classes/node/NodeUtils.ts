@@ -91,7 +91,7 @@ export abstract class NodeUtils{
 
 	//
 	//	Adds a given procedure line as child of active procedure 
-	//	If there is no active procedure, adds it to the node directly
+	//	If there is no active procedure, adds it to the node procedure
 	//
 	public static add_procedure(node: IGraphNode, procedure: IProcedure): IGraphNode{
       	try{
@@ -165,7 +165,7 @@ export abstract class NodeUtils{
 	// Deletes the active procedure in a node
 	//
 	public static delete_procedure(node, prod_to_delete?: IProcedure): IGraphNode{
-
+		
 		if(!node.active_procedure && prod_to_delete == undefined){
 			console.warn("Delete procedure called without active or procedure to delete");
 			return;

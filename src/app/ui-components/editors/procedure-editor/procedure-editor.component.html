@@ -13,7 +13,8 @@
 								[prod]="p" 
 								[active_procedure]="active_node?.active_procedure"
 								[level]="0"
-								[root]="active_node">	
+								[root]="active_node"
+								(action)="onAction($event)">	
 							</app-procedure-item>
 						</ng-container>
 					</div>

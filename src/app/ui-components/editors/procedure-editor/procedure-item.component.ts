@@ -20,6 +20,7 @@ export class ProcedureItemComponent implements OnInit, OnDestroy{
 	@Input() root: IGraphNode;
 
  	//@Output() action = new EventEmitter<{prod: IProcedure, type:string}>();
+ 	@Output() action = new EventEmitter<string>()
 
 	ngOnInit(){ }  
 
@@ -37,7 +38,27 @@ export class ProcedureItemComponent implements OnInit, OnDestroy{
 	}
 
 	delete($event): void{
-		NodeUtils.delete_procedure(this.root, this.prod);
+		this.onSelect($event);
+		this.onAction("delete");
+	}
+
+	cut($event): void{
+		this.onSelect($event);
+		this.onAction("cut");
+	}
+
+	copy($event): void{
+		this.onSelect($event);
+		this.onAction("copy");
+	}
+
+	paste($event): void{
+		this.onSelect($event);
+		this.onAction("paste");
+	}
+
+	onAction(actionString: string){
+		this.action.emit(actionString);
 	}
 
  }

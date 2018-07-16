@@ -99,21 +99,19 @@ export class ProcedureEditorComponent{
 		/// 
 		switch (key){
 			case KEY_CODE.CUT:
-				this.copiedProd = ProcedureUtils.copy_procedure(this.active_node.active_procedure);
-				NodeUtils.delete_procedure(this.active_node);
+				this.handleCut()
 				this.$log.log(`Cut-Copied Procedure with keys: ${this.copiedProd.type}`);
 				break;
 			case KEY_CODE.COPY:
-				this.copiedProd = ProcedureUtils.copy_procedure(this.active_node.active_procedure);
+				this.handleCopy();
 				this.$log.log(`Copied Procedure with keys: ${this.copiedProd.type}`);
 				break;
 			case KEY_CODE.PASTE:
-				if(this.copiedProd){
-					NodeUtils.add_procedure(this.active_node, this.copiedProd);
-					this.copiedProd = ProcedureUtils.copy_procedure(this.copiedProd);
+				try{
+					this.handlePaste();
 					this.$log.log(`Pasted Procedure with keys: ${this.copiedProd.type}`);
 				}
-				else{
+				catch(ex){
 					this.$log.log("Copied Procedure with keys failed because no copied procedure found.");
 				}
 				break;
@@ -179,4 +177,44 @@ export class ProcedureEditorComponent{
 	}
 
 	handleDelete(){ NodeUtils.delete_procedure(this.active_node) };
+
+	onAction(actionString: string){
+
+		switch(actionString){
+			case 'cut':
+				this.handleCut();
+			 	break;
+			case 'copy':
+				this.handleCopy();
+				break;
+			case 'paste':
+				this.handlePaste();
+				break;
+			case 'delete':
+				this.handleDelete();
+				break;
+			default:
+				console.log("Unknown keyboard action");
+		}
+	}
+
+	handleCut(){
+		this.copiedProd = ProcedureUtils.copy_procedure(this.active_node.active_procedure);
+		NodeUtils.delete_procedure(this.active_node);
+	}
+
+	handleCopy(){
+		this.copiedProd = ProcedureUtils.copy_procedure(this.active_node.active_procedure);
+	}
+
+	handlePaste(){
+		try{
+			NodeUtils.add_procedure(this.active_node, this.copiedProd);
+			this.copiedProd = ProcedureUtils.copy_procedure(this.copiedProd);
+		}
+		catch(ex){
+			console.log("Error Pasting");
+		}
+	}
+
 }
