@@ -376,11 +376,11 @@ export class CodeGeneratorJS extends CodeGenerator{
 							prod.error = (true);
 						}
 
-						if(prod.hasChildren){
+						/*if(prod.hasChildren){
 							prod.children.map(function(p){
 								markError(p, prodWithError);
 							})
-						}
+						}*/
 
 					});
 				}

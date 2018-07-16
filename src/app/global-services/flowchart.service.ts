@@ -51,7 +51,9 @@ export class FlowchartService {
   }
 
   push_node(node: IGraphNode){
+    //console.log(`StartTime: ${new Date()}`);
     this.nX.next(node);
+    //console.log(`EndTime: ${new Date()}`);
   }
 
   get flowchart(): IFlowchart{
@@ -82,7 +84,7 @@ export class FlowchartService {
     this.push_flowchart(fc);
     this.push_node(undefined);
 
-    this.$log.log("Created new flowchart.");
+    this.$log.log(`New flowchart created. \nAuthor: ${fc.author}\nModule Count: ${this._ms.modules.length}\nCodeGenerator: ${this._mb.code_generator}`);
   }
 
   //

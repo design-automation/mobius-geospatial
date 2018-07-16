@@ -64,7 +64,7 @@ export abstract class ProcedureUtils{
 				child.parent = procedure;
 			}
 			else{
-				throw Error("Cannot add child to this procedure");
+				throw Error(`Illegal addition of child to ${procedure.type} type`);
 			}
 		}
 		catch(ex){

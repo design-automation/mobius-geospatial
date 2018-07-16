@@ -106,7 +106,7 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
 
   ngOnInit(){
     this.subscriptions.push(this._fs.flowchart$.subscribe((fc) => { if(fc){ this.fc = fc; this.render_flowchart(); }  }));
-    this.subscriptions.push(this._fs.node$.subscribe( (node) => this.active_node = node ));
+    //this.subscriptions.push(this._fs.node$.subscribe( (node) => this.active_node = node ));
   }
 
   ngOnDestroy(){
@@ -120,7 +120,7 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
   }
 
   push_node(){
-    this._fs.push_node(this.active_node)
+    this._fs.push_node(this.active_node);
   }
 
   render_edges(){
@@ -129,7 +129,7 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
         edge["inputPosition"] = FlowchartRenderUtils.get_port_position( this.fc.nodes[edge.input_address[0]], edge.input_address[1], "pi");
         edge["outputPosition"] = FlowchartRenderUtils.get_port_position(this.fc.nodes[edge.output_address[0]], edge.output_address[1], "po");
       });
-      console.log(`Edges rendered successfully`);
+      //console.log(`Edges rendered successfully`);
     }
     catch(ex){
       console.log(`Error while rendering edges, trying again in 0.5s`);
@@ -145,7 +145,7 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
       this.fc.nodes.map( (node) => node["width"] = FlowchartRenderUtils.node_width(node) );
       this.render_edges();
     }  
-    this.$log.log(`Re-rendering flowchart`);
+    //this.$log.log(`Re-rendering flowchart`);
   }
 
 

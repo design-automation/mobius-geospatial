@@ -164,14 +164,17 @@ export abstract class NodeUtils{
 	//
 	// Deletes the active procedure in a node
 	//
-	public static delete_procedure(node): IGraphNode{
+	public static delete_procedure(node, prod_to_delete?: IProcedure): IGraphNode{
 
-		if(!node.active_procedure){
-			console.warn("Delete procedure called without active");
+		if(!node.active_procedure && prod_to_delete == undefined){
+			console.warn("Delete procedure called without active or procedure to delete");
 			return;
 		}
 
-		let prod_to_delete: IProcedure = node.active_procedure;
+		if(prod_to_delete == undefined){
+			prod_to_delete = node.active_procedure;
+		}
+
 		let parent: IProcedure = prod_to_delete.parent;
 
 		if(parent){
@@ -200,6 +203,7 @@ export abstract class NodeUtils{
 			}
 		}
 
+		console.log(`Delete Procedure: ${prod_to_delete.type}`);
 		return node;
 	}
 

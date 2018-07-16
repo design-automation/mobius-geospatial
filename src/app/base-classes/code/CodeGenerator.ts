@@ -14,6 +14,10 @@ export abstract class CodeGenerator implements ICodeGenerator{
 
 	constructor(language: string){  this._language = language; };
 
+	toString(){
+		return `${this._language}-generator`;
+	}
+
 	setModules(modules: IModule[]){  this._modules = modules; };
 
 	getLanguage(): string{  return this._language; };

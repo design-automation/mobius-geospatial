@@ -1,5 +1,6 @@
 <div [class.selected] = "prod.id == active_procedure?.id"
 		[class.print] = "prod.print"
+		[class.error] = "prod.error"
 		[class.disabled] = "!prod.enabled">
 	<div class = "full-container" 
 		*ngIf='prod'>
@@ -120,7 +121,7 @@
 
 				
 			<!--button-->
-			<div style="float: right;">
+			<div style="float: right;" *ngIf='prod.id == active_procedure?.id'>
 				<button class="btn--action"
 			   		(click)="prod.print = !prod.print" 
 			   		matTooltip="Print value to console"
@@ -132,6 +133,12 @@
 					(click)="prod.enabled = !prod.enabled" 
 					matTooltip="Enable/Disable Line" tabindex="-1">
 		    		<mat-icon>check_circle</mat-icon>
+			    </button>
+
+			    <button class="btn--action" matTooltip="Delete Line" 
+		        	tabindex="-1"
+		       		(click)="delete($event)">
+		    		<mat-icon>delete</mat-icon>
 			    </button>
 			</div>
 		</div>
@@ -168,25 +175,8 @@
 							(click)="onAction($event, prod, 'help')" tabindex="-1">
 							<mat-icon>help_outline</mat-icon>
 						</button>
-
-					   	<button mat-button
-					   		(click)="prod.print = !prod.print" 
-					   		matTooltip="Print value to console"
-					   		*ngIf="prod.type =='Action' || prod.type =='Data'" tabindex="-1">
-				    		<mat-icon>print</mat-icon>
-					    </button>
-						
-						<button mat-button 
-							(click)="prod.enabled = !prod.enabled" 
-							matTooltip="Enable/Disable Line" tabindex="-1">
-				    		<mat-icon>check_circle</mat-icon>
-					    </button>
 				        
-				        <button mat-button matTooltip="Delete Line" 
-				        	tabindex="-1"
-				       		(click)="onAction($event, prod, 'delete')">
-				    		<mat-icon>delete</mat-icon>
-					    </button>
+				        
 					    <!-- <button (click)="disableProcedure(prod, $event)">Disable</button>
 					    <button (click)="go($event)">Copy</button> -->
 					</div>
@@ -198,7 +188,7 @@
 
 	<div class="children" *ngIf="prod.children.length > 0 && prod.enabled">
 		<app-procedure-item 
-			*ngFor="let child of prod.children" 
+			*ngFor="let child of prod.children; trackBy: trackByFn" 
 			[prod]="child"
 			[root]="root"
 			[active_procedure]="active_procedure"

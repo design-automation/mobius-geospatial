@@ -1,9 +1,9 @@
-import { Component, OnInit, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-graph-edge',
   templateUrl: './graph-edge.component.html',
-  styleUrls: ['./graph-edge.component.scss']
+  styleUrls: ['./graph-edge.component.scss'],
 })
 export class GraphEdgeComponent implements OnInit {
 
@@ -27,7 +27,7 @@ export class GraphEdgeComponent implements OnInit {
   ngOnInit() {
       let canvas: HTMLCanvasElement = this.canvas.nativeElement;
       let context  = canvas.getContext('2d');
-
+      
       this.drawEdge();
   }
 

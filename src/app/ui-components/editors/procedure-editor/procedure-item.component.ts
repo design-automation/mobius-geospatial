@@ -4,9 +4,8 @@ import { Component,
 		 OnInit, OnDestroy,
 		 ViewChild, HostListener} from '@angular/core';
 
-import {IProcedure, ProcedureFactory, 
-		ProcedureTypes} from '../../../base-classes/procedure/ProcedureModule';
-import {NodeUtils} from '../../../base-classes/node/NodeModule';
+import {IProcedure, ProcedureFactory, ProcedureTypes, ProcedureUtils} from '../../../base-classes/procedure/ProcedureModule';
+import {NodeUtils, IGraphNode} from '../../../base-classes/node/NodeModule';
 
 @Component({
   selector: 'app-procedure-item',
@@ -18,7 +17,7 @@ export class ProcedureItemComponent implements OnInit, OnDestroy{
 	@Input() prod: IProcedure;
 	@Input() active_procedure: IProcedure;
 	@Input() level: number;
-	@Input() root;
+	@Input() root: IGraphNode;
 
  	//@Output() action = new EventEmitter<{prod: IProcedure, type:string}>();
 
@@ -33,11 +32,12 @@ export class ProcedureItemComponent implements OnInit, OnDestroy{
 		this.root.active_procedure = this.prod;
 	}
 
-	// onAction($event, prod, type): void{
-	// 	if( !($event instanceof Event) )
-	// 		this.action.emit({prod: $event, type: type}); 
-	// 	else if($event["prod"])
-	// 		this.action.emit({prod: prod, type: type});
-	// }
+	trackByFn(procedure) {
+	    return procedure.id; // or song.id
+	}
 
-}
+	delete($event): void{
+		NodeUtils.delete_procedure(this.root, this.prod);
+	}
+
+ }
