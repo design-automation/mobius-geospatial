@@ -310,6 +310,9 @@ class CodeFactory {
 class CodeGenerator {
     constructor(language) { this._language = language; }
     ;
+    toString() {
+        return `${this._language}-generator`;
+    }
     setModules(modules) { this._modules = modules; }
     ;
     getLanguage() { return this._language; }
@@ -785,11 +788,11 @@ class CodeGeneratorJS extends __WEBPACK_IMPORTED_MODULE_0__CodeGenerator__["a" /
                     if (prod["id"] == prodWithError) {
                         prod.error = (true);
                     }
-                    if (prod.hasChildren) {
-                        prod.children.map(function (p) {
+                    /*if(prod.hasChildren){
+                        prod.children.map(function(p){
                             markError(p, prodWithError);
-                        });
-                    }
+                        })
+                    }*/
                 });
             }
             let error;
@@ -1702,12 +1705,14 @@ class NodeUtils {
     //
     // Deletes the active procedure in a node
     //
-    static delete_procedure(node) {
-        if (!node.active_procedure) {
-            console.warn("Delete procedure called without active");
+    static delete_procedure(node, prod_to_delete) {
+        if (!node.active_procedure && prod_to_delete == undefined) {
+            console.warn("Delete procedure called without active or procedure to delete");
             return;
         }
-        let prod_to_delete = node.active_procedure;
+        if (prod_to_delete == undefined) {
+            prod_to_delete = node.active_procedure;
+        }
         let parent = prod_to_delete.parent;
         if (parent) {
             // delete procedure from the oarent procedure
@@ -1733,6 +1738,7 @@ class NodeUtils {
                 index++;
             }
         }
+        console.log(`Delete Procedure: ${prod_to_delete.type}`);
         return node;
     }
     static get_variable_list(node) {
@@ -2763,7 +2769,7 @@ class ProcedureUtils {
                 child.parent = procedure;
             }
             else {
-                throw Error("Cannot add child to this procedure");
+                throw Error(`Illegal addition of child to ${procedure.type} type`);
             }
         }
         catch (ex) {
@@ -3053,7 +3059,7 @@ let ConsoleService = class ConsoleService {
         this.sendMessage();
     }
     log(msg) {
-        console.log(new Date() + ": " + msg);
+        console.log(`[${(new Date()).toISOString()}] ${msg}`);
     }
 };
 ConsoleService = __decorate([
@@ -3260,7 +3266,9 @@ let FlowchartService = class FlowchartService {
         this.fcX.next(fc);
     }
     push_node(node) {
+        //console.log(`StartTime: ${new Date()}`);
         this.nX.next(node);
+        //console.log(`EndTime: ${new Date()}`);
     }
     get flowchart() {
         return this.fcX.getValue();
@@ -3283,7 +3291,7 @@ let FlowchartService = class FlowchartService {
         this.update_modules();
         this.push_flowchart(fc);
         this.push_node(undefined);
-        this.$log.log("Created new flowchart.");
+        this.$log.log(`New flowchart created. \nAuthor: ${fc.author}\nModule Count: ${this._ms.modules.length}\nCodeGenerator: ${this._mb.code_generator}`);
     }
     //
     // Loads a file from a string
@@ -10005,7 +10013,7 @@ ConsoleComponent = __decorate([
 /***/ "./src/app/ui-components/controls/flowchart-controls/flowchart-controls.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<section>\r\n\t<div class=\"focus\" (click)=\"new_flowchart()\">New File</div>\r\n\t<div class=\"focus\" (click)=\"open_picker()\">Open File\r\n\t\t<input #fileInput style=\"display: none;\"\r\n  \t\ttype=\"file\" (change)=\"load_file()\"/> \r\n\t</div>\r\n\t<div class=\"focus\" (click)=\"save_file()\">Save File</div>\r\n\t<div class=\"focus\" (click)=\"publish_settings()\">Settings</div>\r\n</section>\r\n\r\n<br><br><br>\r\n\r\n<section>\r\n\t<div class=\"focus\" (click)=\"add_node($event)\">New Node</div>\r\n\t<app-node-library></app-node-library>\r\n</section>"
+module.exports = "<section>\r\n\t<div class=\"focus\" (click)=\"new_flowchart()\">New File</div>\r\n\t<div class=\"focus\" (click)=\"open_picker()\">Open File\r\n\t\t<input #fileInput style=\"display: none;\"\r\n  \t\ttype=\"file\" (change)=\"load_file()\"/> \r\n\t</div>\r\n\t<div class=\"focus\" (click)=\"save_file()\">Save File</div>\r\n\t<div class=\"focus\" (click)=\"publish_settings()\">Publish</div>\r\n</section>\r\n\r\n<br><br><br>\r\n\r\n<section>\r\n\t<div class=\"focus\" (click)=\"add_node($event)\">New Node</div>\r\n\t<!-- TODO: <app-node-library></app-node-library> -->\r\n</section>"
 
 /***/ }),
 
@@ -10599,7 +10607,7 @@ EditorComponent = __decorate([
 /***/ "./src/app/ui-components/editors/flowchart-viewer/flowchart-viewer.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"viewer\">\r\n\r\n\t<div class=\"container\" >\r\n\r\n\t\t<split  direction=\"horizontal\" \r\n              [gutterSize]=\"7\" \r\n              [useTransition]=\"true\" gutterColor=white>\r\n\t\t\t\t\t\r\n\r\n\t\t\t    <!-- Panel: Contains Flowchart Controls -->\r\n\t\t\t\t<split-area class=\"sidebar\" [size]=\"30\" order=\"1\">\r\n\t\t\t\t\t<app-flowchart-controls></app-flowchart-controls>\r\n\t\t\t\t</split-area>\r\n\t\t\t\t\r\n\t\t\t\r\n\t\t\t\t<!-- Graph: Nodes + Edges -->\r\n\t\t\t\t<split-area order=\"2\" [size]=\"70\"\r\n\t\t\t\t\tstyle=\"overflow: hidden; position: relative; display: flex; flex-direction: column;\" \r\n\t\t\t\t\t(wheel)=\"scale($event)\">\r\n\t\t\t\t\t\r\n\t\t\t\t\t<div id=\"flowchart__name\">\r\n\t\t\t\t\t\t{{fc?.name || \"No flowchart\"}} with {{fc.nodes.length}} nodes and {{fc.edges.length}} edges\r\n\t\t\t\t\t</div>\r\n\r\n\t\t\t\t    <div class =\"action-window\">\r\n\r\n\t\t\t\t    \t<div class=\"content-wrapper\" (wheel)=\"scale($event)\" \r\n\t\t\t\t    \t\tstyle=\"flex-grow: 1;\">\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<!-- div container for the flowchart -->\r\n\t\t\t\t\t\t\t<div class=\"graph-container\" \r\n\t\t\t\t\t\t\t\tid=\"graph-nodes\"\r\n\t\t\t\t\t\t\t    [style.transform]=\"getZoomStyle()\"\r\n\t\t\t\t\t\t\t\tondragover=\"return false\" \r\n\t\t\t\t\t\t\t\t(mousedown)=\"pan($event)\">\r\n\r\n\t\t\t\t\t\t\t\t<!-- Nodes --> \r\n\t\t\t\t\t\t\t\t<div class=\"node-container content-wrapper\">\r\n\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t<!-- single  node -->\r\n\t\t\t\t\t\t\t\t\t<div  class=\"node\" \r\n\t\t\t\t\t\t\t\t\t\t\t*ngFor=\"let node of fc?.nodes; let node_index = index\" \r\n\t\t\t\t\t\t\t\t\t\t\tid=\"n{{node_index}}\"\r\n\t\t\t\t\t\t\t\t\t\t\t[style.left.px]=\"node.position[0]\" \r\n\t\t\t\t\t\t\t\t\t\t\t[style.top.px]=\"node.position[1]\">\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t<!-- node-controls-->\r\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"btn-container\" *ngIf=\"node.id == active_node?.id\" >\r\n\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"btn-group port-btns\">\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<!-- copy node -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"action-button\" (click)=\"duplicate_node()\" \t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tmatTooltip=\"Copy Node\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<mat-icon>content_copy</mat-icon>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<!-- delete node -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"action-button\" (click)=\"delete_node(node.id)\" \t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tmatTooltip=\"Delete Node\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<mat-icon>delete</mat-icon>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<!-- disable / enable node -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"action-button\" (click)=\"node.enabled = !node.enabled;\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<mat-icon>{{ node.enabled ? 'check_circle' : 'highlight_off' }} </mat-icon>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<!--todo -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"action-button\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t(click)=\"save_node_to_library()\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tmatTooltip=\"Save Node To Library\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t*ngIf=\"false && node.type == undefined\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<mat-icon>file_download</mat-icon>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t<!-- node body -->\r\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"node-body\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t[class.library]=\"node.type !== undefined\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t[class.error]=\"node._hasError\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t[class.disabled] =\"!node.enabled\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t(click)=\"active_node = node; push_node();\"\r\n\t\t\t\t\t\t\t\t\t\t\t\tdraggable=true  \r\n\t\t\t\t\t\t\t\t\t\t\t\t(dragstart)=\"nodeDragStart($event, node)\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t(drag)=\"nodeDragging($event, node, node_index)\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t(dragend)=\"nodeDragEnd($event, node)\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"node-name\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.selected]=\"node.id == active_node?.id\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    <input matInput\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"node.name\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    style=\"margin: 2px; min-width: 50px; max-width: 80px;\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    placeholder=\"Node Name\" value=\"{{ node.name }}\"/>\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!--inputs -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port-container\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port input\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t*ngFor=\"let port of node.inputs; let pi=index\"  \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tid=\"n{{node.id}}pi{{pi}}\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.hidden]=\"port.type != 'Input'\">\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port-grip\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tdraggable=true\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.connected]=\"port.isConnected\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(dragstart)=\"portDragStart($event, port, [node_index, pi])\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(drag)=\"portDragging($event, port)\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(dragend)=\"portDragEnd($event, port)\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(drop)=\"portDrop($event, port, [node_index, pi])\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<input matInput\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"port.name\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    style=\"margin: 2px; min-width: 50px; max-width: 80px;\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    placeholder=\"Input Port Name\" value=\"{{ port.name }}\"/>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<!-- <span class=\"port-name\">{{ port.name | shortname: 10 }}</span> -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t<span style=\"margin: 0 auto;\" *ngIf='node.time_taken'>Time: {{node.time_taken}}s</span>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!-- outputs -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port-container\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port output\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t*ngFor=\"let port of node.outputs; let po=index;\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tid=\"n{{node.id}}po{{po}}\">\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<input matInput\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"port.name\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    style=\"margin: 2px; min-width: 50px; max-width: 80px; text-align: right;\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    placeholder=\"Output Port Name\" value=\"{{ port.name }}\"/>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port-grip\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tdraggable=true\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.selected]=\"isPortSelected(node_index, po)\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.connected]=\"port.isConnected\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(click)=\"clickPort($event, node_index, po)\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(dragstart)=\"portDragStart($event, port, [node_index, po])\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(drag)=\"portDragging($event, port)\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(dragend)=\"portDragEnd($event, port)\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(drop)=\"portDrop($event, port, [node_index, po])\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div> \r\n\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!-- <div class=\"fromLibrary\"  style=\"font-size: 8px; text-align: center\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\tLibrary Node\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div> -->\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\t\t\t<!-- Edges -->\r\n\t\t\t\t\t\t\t\t<div class=\"edge-container\">\r\n\t\t\t\t\t\t\t\t\t<app-graph-edge \r\n\t\t\t\t\t\t\t\t\t\t*ngFor=\"let edge of fc?.edges\" \r\n\t\t\t\t\t\t\t\t\t\t[edge]=\"edge\">\r\n\t\t\t\t\t\t\t\t\t</app-graph-edge>\r\n\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t<!-- temporary edge -->\r\n\t\t\t\t\t\t\t\t\t<app-graph-edge \r\n\t\t\t\t\t\t\t\t\t\t\t[class.hidden]=\"!_linkMode\"\r\n\t\t\t\t\t\t\t\t\t\t\t[edge]=\"{inputPosition: mouse_pos.start, outputPosition: mouse_pos.current}\"\r\n\t\t\t\t\t\t\t\t\t\t\t[temporary]=\"true\">\r\n\t\t\t\t\t\t\t\t\t</app-graph-edge>\r\n\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t</div>\r\n\t\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</div>\r\n\r\n\t\t\t\t</split-area>\r\n\r\n\t\t</split>\r\n\r\n\t</div>\r\n\t\r\n\r\n</div>\r\n<!-- </mat-expansion-panel> -->\r\n\r\n\r\n\r\n"
+module.exports = "<div class=\"viewer\">\r\n\r\n\t<div class=\"container\" >\r\n\r\n\t\t<split  direction=\"horizontal\" \r\n              [gutterSize]=\"7\" \r\n              [useTransition]=\"true\" gutterColor=white>\r\n\t\t\t\t\t\r\n\r\n\t\t\t    <!-- Panel: Contains Flowchart Controls -->\r\n\t\t\t\t<split-area class=\"sidebar\" [size]=\"30\" order=\"1\">\r\n\t\t\t\t\t<app-flowchart-controls></app-flowchart-controls>\r\n\t\t\t\t</split-area>\r\n\t\t\t\t\r\n\t\t\t\r\n\t\t\t\t<!-- Graph: Nodes + Edges -->\r\n\t\t\t\t<split-area order=\"2\" [size]=\"70\"\r\n\t\t\t\t\tstyle=\"overflow: hidden; position: relative; display: flex; flex-direction: column;\" \r\n\t\t\t\t\t(wheel)=\"scale($event)\">\r\n\t\t\t\t\t\r\n\t\t\t\t\t<div id=\"flowchart__name\">\r\n\t\t\t\t\t\t{{fc?.name || \"No flowchart\"}} with {{fc.nodes.length}} nodes and {{fc.edges.length}} edges\r\n\t\t\t\t\t</div>\r\n\r\n\t\t\t\t    <div class =\"action-window\">\r\n\r\n\t\t\t\t    \t<div class=\"content-wrapper\" (wheel)=\"scale($event)\" \r\n\t\t\t\t    \t\tstyle=\"flex-grow: 1;\">\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<!-- div container for the flowchart -->\r\n\t\t\t\t\t\t\t<div class=\"graph-container\" \r\n\t\t\t\t\t\t\t\tid=\"graph-nodes\"\r\n\t\t\t\t\t\t\t    [style.transform]=\"getZoomStyle()\"\r\n\t\t\t\t\t\t\t\tondragover=\"return false\">\r\n\r\n\t\t\t\t\t\t\t\t<!-- Nodes --> \r\n\t\t\t\t\t\t\t\t<div class=\"node-container content-wrapper\">\r\n\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t<!-- single  node -->\r\n\t\t\t\t\t\t\t\t\t<div  class=\"node\" \r\n\t\t\t\t\t\t\t\t\t\t\t*ngFor=\"let node of fc?.nodes; let node_index = index\" \r\n\t\t\t\t\t\t\t\t\t\t\tid=\"n{{node_index}}\"\r\n\t\t\t\t\t\t\t\t\t\t\t[style.left.px]=\"node.position[0]\" \r\n\t\t\t\t\t\t\t\t\t\t\t[style.top.px]=\"node.position[1]\">\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t<!-- node-controls-->\r\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"btn-container\" *ngIf=\"node.id == active_node?.id\" >\r\n\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"btn-group port-btns\">\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<!-- copy node -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"action-button\" (click)=\"duplicate_node()\" \t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tmatTooltip=\"Copy Node\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<mat-icon>content_copy</mat-icon>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<!-- delete node -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"action-button\" (click)=\"delete_node(node.id)\" \t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tmatTooltip=\"Delete Node\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<mat-icon>delete</mat-icon>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<!-- disable / enable node -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"action-button\" (click)=\"node.enabled = !node.enabled;\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<mat-icon>{{ node.enabled ? 'check_circle' : 'highlight_off' }} </mat-icon>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<!--todo -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"action-button\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t(click)=\"save_node_to_library()\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tmatTooltip=\"Save Node To Library\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t*ngIf=\"false && node.type == undefined\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<mat-icon>file_download</mat-icon>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t<!-- node body -->\r\n\t\t\t\t\t\t\t\t\t\t\t<div class=\"node-body\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t[class.library]=\"node.type !== undefined\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t[class.error]=\"node._hasError\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t[class.disabled] =\"!node.enabled\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t(click)=\"active_node = node; push_node();\"\r\n\t\t\t\t\t\t\t\t\t\t\t\tdraggable=true  \r\n\t\t\t\t\t\t\t\t\t\t\t\t(dragstart)=\"nodeDragStart($event, node)\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t(drag)=\"nodeDragging($event, node, node_index)\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t(dragend)=\"nodeDragEnd($event, node)\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"node-name\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.selected]=\"node.id == active_node?.id\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    <input matInput\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"node.name\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    style=\"margin: 2px; min-width: 50px; max-width: 80px;\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    placeholder=\"Node Name\" value=\"{{ node.name }}\"/>\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!--inputs -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port-container\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port input\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t*ngFor=\"let port of node.inputs; let pi=index\"  \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tid=\"n{{node.id}}pi{{pi}}\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.hidden]=\"port.type != 'Input'\">\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port-grip\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tdraggable=true\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.connected]=\"port.isConnected\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(dragstart)=\"portDragStart($event, port, [node_index, pi])\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(drag)=\"portDragging($event, port)\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(dragend)=\"portDragEnd($event, port)\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(drop)=\"portDrop($event, port, [node_index, pi])\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<input matInput\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"port.name\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    style=\"margin: 2px; min-width: 50px; max-width: 80px;\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    placeholder=\"Input Port Name\" value=\"{{ port.name }}\"/>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<!-- <span class=\"port-name\">{{ port.name | shortname: 10 }}</span> -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t<span style=\"margin: 0 auto;\" *ngIf='node.time_taken'>Time: {{node.time_taken}}s</span>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!-- outputs -->\r\n\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port-container\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port output\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t*ngFor=\"let port of node.outputs; let po=index;\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tid=\"n{{node.id}}po{{po}}\">\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<input matInput\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"port.name\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    style=\"margin: 2px; min-width: 50px; max-width: 80px; text-align: right;\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t    placeholder=\"Output Port Name\" value=\"{{ port.name }}\"/>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<div class=\"port-grip\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tdraggable=true\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.selected]=\"isPortSelected(node_index, po)\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t[class.connected]=\"port.isConnected\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(click)=\"clickPort($event, node_index, po)\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(dragstart)=\"portDragStart($event, port, [node_index, po])\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(drag)=\"portDragging($event, port)\" \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(dragend)=\"portDragEnd($event, port)\"\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t(drop)=\"portDrop($event, port, [node_index, po])\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div> \r\n\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t\t<!-- <div class=\"fromLibrary\"  style=\"font-size: 8px; text-align: center\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t\tLibrary Node\r\n\t\t\t\t\t\t\t\t\t\t\t\t</div> -->\r\n\r\n\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\t\t\t<!-- Edges -->\r\n\t\t\t\t\t\t\t\t<div class=\"edge-container\">\r\n\t\t\t\t\t\t\t\t\t<app-graph-edge \r\n\t\t\t\t\t\t\t\t\t\t*ngFor=\"let edge of fc?.edges\" \r\n\t\t\t\t\t\t\t\t\t\t[edge]=\"edge\">\r\n\t\t\t\t\t\t\t\t\t</app-graph-edge>\r\n\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t<!-- temporary edge -->\r\n\t\t\t\t\t\t\t\t\t<app-graph-edge \r\n\t\t\t\t\t\t\t\t\t\t\t[class.hidden]=\"!_linkMode\"\r\n\t\t\t\t\t\t\t\t\t\t\t[edge]=\"{inputPosition: mouse_pos.start, outputPosition: mouse_pos.current}\"\r\n\t\t\t\t\t\t\t\t\t\t\t[temporary]=\"true\">\r\n\t\t\t\t\t\t\t\t\t</app-graph-edge>\r\n\t\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t</div>\r\n\t\r\n\t\t\t\t\t\t</div>\r\n\t\t\t\t\t</div>\r\n\r\n\t\t\t\t</split-area>\r\n\r\n\t\t</split>\r\n\r\n\t</div>\r\n\t\r\n\r\n</div>\r\n<!-- </mat-expansion-panel> -->\r\n\r\n\r\n\r\n"
 
 /***/ }),
 
@@ -10716,7 +10724,7 @@ let FlowchartViewerComponent = class FlowchartViewerComponent {
             this.fc = fc;
             this.render_flowchart();
         } }));
-        this.subscriptions.push(this._fs.node$.subscribe((node) => this.active_node = node));
+        //this.subscriptions.push(this._fs.node$.subscribe( (node) => this.active_node = node ));
     }
     ngOnDestroy() {
         this.subscriptions.map(function (s) {
@@ -10735,7 +10743,7 @@ let FlowchartViewerComponent = class FlowchartViewerComponent {
                 edge["inputPosition"] = FlowchartRenderUtils.get_port_position(this.fc.nodes[edge.input_address[0]], edge.input_address[1], "pi");
                 edge["outputPosition"] = FlowchartRenderUtils.get_port_position(this.fc.nodes[edge.output_address[0]], edge.output_address[1], "po");
             });
-            console.log(`Edges rendered successfully`);
+            //console.log(`Edges rendered successfully`);
         }
         catch (ex) {
             console.log(`Error while rendering edges, trying again in 0.5s`);
@@ -10749,7 +10757,7 @@ let FlowchartViewerComponent = class FlowchartViewerComponent {
             this.fc.nodes.map((node) => node["width"] = FlowchartRenderUtils.node_width(node));
             this.render_edges();
         }
-        this.$log.log(`Re-rendering flowchart`);
+        //this.$log.log(`Re-rendering flowchart`);
     }
     duplicate_node() {
         this._fs.flowchart.nodes.push(__WEBPACK_IMPORTED_MODULE_3__base_classes_node_NodeModule__["b" /* NodeUtils */].copy_node(this.active_node));
@@ -11284,9 +11292,8 @@ module.exports = ".reset {\n  margin: 0px;\n  padding: 0px; }\n\n.default {\n  f
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("./node_modules/@angular/core/esm2015/core.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__ = __webpack_require__("./src/app/base-classes/node/NodeModule.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__ = __webpack_require__("./src/app/base-classes/procedure/ProcedureModule.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__global_services_flowchart_service__ = __webpack_require__("./src/app/global-services/flowchart.service.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__global_services_layout_service__ = __webpack_require__("./src/app/global-services/layout.service.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__global_services_console_service__ = __webpack_require__("./src/app/global-services/console.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__global_services_console_service__ = __webpack_require__("./src/app/global-services/console.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__global_services_flowchart_service__ = __webpack_require__("./src/app/global-services/flowchart.service.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -11296,7 +11303,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-
 
 
 
@@ -11312,9 +11318,9 @@ var KEY_CODE;
     KEY_CODE[KEY_CODE["RIGHT"] = 39] = "RIGHT";
     KEY_CODE[KEY_CODE["DOWN"] = 40] = "DOWN";
     KEY_CODE[KEY_CODE["DELETE"] = 46] = "DELETE";
+    KEY_CODE[KEY_CODE["CTRL"] = 17] = "CTRL";
+    KEY_CODE[KEY_CODE["SHIFT"] = 16] = "SHIFT";
 })(KEY_CODE || (KEY_CODE = {}));
-class ProcedureOptions {
-}
 /*
  *	Displays the drag-drop procedure for a node
  *
@@ -11323,11 +11329,9 @@ class ProcedureOptions {
  * 	- selected_node is updated
  */
 let ProcedureEditorComponent = class ProcedureEditorComponent {
-    constructor(_fs, _ls, $log) {
-        this._fs = _fs;
-        this._ls = _ls;
+    constructor($log, _fs) {
         this.$log = $log;
-        // ----- Private Variables
+        this._fs = _fs;
         this.subscriptions = [];
     }
     ngOnInit() {
@@ -11341,120 +11345,118 @@ let ProcedureEditorComponent = class ProcedureEditorComponent {
             s.unsubscribe();
         });
     }
-    onAction($event, procedure, type) {
-        console.log($event, procedure, type);
-        if (!($event instanceof Event)) {
-            this.active_node.active_procedure = $event;
-        }
-    }
     // ---- Cut / Copy / Paste Functions
     keyEvent(event) {
         try {
             var key = event.keyCode;
             var ctrlDown = event.ctrlKey || event.metaKey; // Makey support
             var shiftDown = event.shiftKey;
-            if ((event.srcElement.className.indexOf("input") > -1)) {
-                event.stopPropagation();
+            /// key events triggered from typing - return without action
+            if (!this.validateKeystroke(event))
                 return;
-            }
-            ;
-            if (ctrlDown) {
-                switch (key) {
-                    case KEY_CODE.CUT:
-                        this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.active_node.active_procedure);
-                        console.log(`Cut-Copied Producedure ${this.copiedProd.type}`);
-                        this.delete_procedure();
-                        break;
-                    case KEY_CODE.COPY:
-                        this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.active_node.active_procedure);
-                        console.log(`Copied Producedure ${this.copiedProd.type}`);
-                        break;
-                    case KEY_CODE.PASTE:
-                        console.log(`Attempting to copy procedure ${this.copiedProd.type}`);
-                        if (this.copiedProd) {
-                            __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].add_procedure(this.active_node, this.copiedProd);
-                            this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.copiedProd);
-                        }
-                        else {
-                            this.$log.log("Procedure to copy not found");
-                        }
-                        break;
-                }
-            }
-            else if (shiftDown) {
-                let child = this.active_node.active_procedure;
-                let parent = child.parent;
-                let position;
-                let procedure_above;
-                let procedure_below;
-                console.log(`Procedure Above: ${procedure_above}`);
-                console.log(`Procedure Below: ${procedure_below}`);
-                if (parent == undefined) {
-                    position = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].get_child_position(this.active_node, child);
-                    procedure_above = this.active_node.children[position - 1];
-                    procedure_below = this.active_node.children[position + 1];
-                }
-                else {
-                    position = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].get_child_position(parent, child);
-                    procedure_above = parent.children[position - 1];
-                    procedure_below = parent.children[position + 1];
-                }
-                switch (key) {
-                    case KEY_CODE.LEFT:
-                        if (!this.active_node.active_procedure.parent) { }
-                        else {
-                            let grandparent = parent.parent;
-                            if (grandparent) {
-                                __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].shift_level_up(this.active_node.active_procedure);
-                            }
-                            else {
-                                __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].delete_child(parent, child);
-                                let position = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].get_child_position(this.active_node, parent);
-                                __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].add_procedure_at_position(this.active_node, child, position + 1);
-                            }
-                        }
-                        break;
-                    case KEY_CODE.RIGHT:
-                        if (position - 1 < 0)
-                            return;
-                        if (procedure_above.hasChildren == false)
-                            return;
-                        if (parent == undefined) {
-                            this.active_node = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].delete_procedure(child);
-                        }
-                        else {
-                            parent = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].delete_child(parent, child);
-                        }
-                        //ProcedureUtils.add_child(procedure_above, child);
-                        break;
-                    case KEY_CODE.DOWN:
-                        if (procedure_below) {
-                            //this.onSelect(procedure_below);
-                        }
-                        else {
-                        }
-                    case KEY_CODE.UP:
-                        console.log("up", procedure_above);
-                        if (procedure_above) {
-                            //this.onSelect(procedure_above);
-                        }
-                        else {
-                        }
-                        break;
-                }
-            }
-            else if (key == KEY_CODE.DELETE) {
-                this.delete_procedure();
-            }
+            /// return if there is no active procedure
+            if (this.active_node.active_procedure === undefined)
+                return;
+            if (ctrlDown)
+                this.handleCutCopyPaste(key);
+            else if (shiftDown)
+                this.handleMove(key);
+            else if (key == KEY_CODE.DELETE)
+                this.handleDelete();
+            this.$log.log(`Successfully executed key command: ${KEY_CODE[key]}`);
         }
         catch (ex) {
-            console.log(`Error occured during key commands ${ex}`);
+            this.$log.log(`Error occured during key command: ${KEY_CODE[key]} \nError: ${ex}`);
+            console.log(ex);
         }
     }
-    delete_procedure() {
-        console.log(`Delete Procedure: ${this.active_node.active_procedure.type}`);
-        __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].delete_procedure(this.active_node);
+    validateKeystroke(event) {
+        if ((event.srcElement.className.indexOf("input") > -1)) {
+            event.stopPropagation();
+            return 0;
+        }
+        ;
+        return 1;
     }
+    handleCutCopyPaste(key) {
+        /// 
+        /// key events with ctrl
+        /// 
+        switch (key) {
+            case KEY_CODE.CUT:
+                this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.active_node.active_procedure);
+                __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].delete_procedure(this.active_node);
+                this.$log.log(`Cut-Copied Procedure with keys: ${this.copiedProd.type}`);
+                break;
+            case KEY_CODE.COPY:
+                this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.active_node.active_procedure);
+                this.$log.log(`Copied Procedure with keys: ${this.copiedProd.type}`);
+                break;
+            case KEY_CODE.PASTE:
+                if (this.copiedProd) {
+                    __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].add_procedure(this.active_node, this.copiedProd);
+                    this.copiedProd = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].copy_procedure(this.copiedProd);
+                    this.$log.log(`Pasted Procedure with keys: ${this.copiedProd.type}`);
+                }
+                else {
+                    this.$log.log("Copied Procedure with keys failed because no copied procedure found.");
+                }
+                break;
+        }
+    }
+    handleMove(key) {
+        /// 
+        /// event with shift
+        /// 
+        let selected_procedure = this.active_node.active_procedure;
+        let parent = selected_procedure.parent;
+        if (parent == undefined) {
+            /// directly inside node
+        }
+        else {
+            //
+        }
+        // if left, 
+        // 	  if no parent, nothing happens
+        // 	  
+        // if right, 
+        //    if above procedure has children, becomes child of above in last index
+        //    
+        let position;
+        let procedure_above;
+        if (parent == undefined) {
+            position = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].get_child_position(this.active_node, selected_procedure);
+            procedure_above = this.active_node.children[position - 1];
+        }
+        else {
+            position = __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].get_child_position(parent, selected_procedure);
+            procedure_above = parent.children[position - 1];
+        }
+        switch (key) {
+            case KEY_CODE.LEFT:
+                if (!this.active_node.active_procedure.parent) { }
+                else {
+                    let grandparent = parent.parent;
+                    if (grandparent) {
+                        __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].shift_level_up(this.active_node.active_procedure);
+                    }
+                    else {
+                        __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].delete_child(parent, selected_procedure);
+                        let position = __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].get_child_position(this.active_node, parent);
+                        __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].add_procedure_at_position(this.active_node, selected_procedure, position + 1);
+                    }
+                }
+                break;
+            case KEY_CODE.RIGHT:
+                if (position == 0 || procedure_above === undefined || !procedure_above.hasChildren)
+                    return;
+                __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].delete_procedure(this.active_node, selected_procedure);
+                __WEBPACK_IMPORTED_MODULE_2__base_classes_procedure_ProcedureModule__["c" /* ProcedureUtils */].add_child(procedure_above, selected_procedure);
+                break;
+        }
+    }
+    handleDelete() { __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].delete_procedure(this.active_node); }
+    ;
 };
 __decorate([
     Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["z" /* HostListener */])('window:keyup', ['$event']),
@@ -11468,9 +11470,7 @@ ProcedureEditorComponent = __decorate([
         template: __webpack_require__("./src/app/ui-components/editors/procedure-editor/procedure-editor.component.html"),
         styles: [__webpack_require__("./src/app/ui-components/editors/procedure-editor/procedure-editor.component.scss")]
     }),
-    __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_3__global_services_flowchart_service__["a" /* FlowchartService */],
-        __WEBPACK_IMPORTED_MODULE_4__global_services_layout_service__["a" /* LayoutService */],
-        __WEBPACK_IMPORTED_MODULE_5__global_services_console_service__["a" /* ConsoleService */]])
+    __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_3__global_services_console_service__["a" /* ConsoleService */], __WEBPACK_IMPORTED_MODULE_4__global_services_flowchart_service__["a" /* FlowchartService */]])
 ], ProcedureEditorComponent);
 
 
@@ -11480,7 +11480,7 @@ ProcedureEditorComponent = __decorate([
 /***/ "./src/app/ui-components/editors/procedure-editor/procedure-item.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div [class.selected] = \"prod.id == active_procedure?.id\"\r\n\t\t[class.print] = \"prod.print\"\r\n\t\t[class.disabled] = \"!prod.enabled\">\r\n\t<div class = \"full-container\" \r\n\t\t*ngIf='prod'>\r\n\t\t<!-- (mouseover)=\"_activeProcedure = prod\" -->\r\n\t\t<div class = \"seg1\" \r\n\t\t\t[class.print]=\"prod.print\"\r\n\t\t\t[class.error]=\"prod.error\" \r\n\t\t\t[class.disabled]=\"!prod.enabled\"\r\n\t\t\t(click)=\"onSelect($event)\">\r\n\r\n\t\t\t<!-- template for data -->\r\n\t\t\t<div *ngIf=\"prod.type == 'Data'\"> \r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\trequired spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" required spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'If' || prod.type == 'ElseIf'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}} :::</span> \r\n\t\t\t\t <input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\"  \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\"\r\n\t\t\t\t\trequired spellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Else'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}}</span> \r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'For Loop'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>for each (</span> \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\r\n\t\t\t\t\t<span style=\"margin: 0px 10px;\">in</span>  \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" spellcheck=\"false\" list=\"variable-suggestions\"> \r\n\t\t\t\t\t)\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'While'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>while :::</span> \r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Action'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" required\r\n\t\t\t\t\t\tspellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\t\t\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"module\">{{prod.right.module.replace(\"_\",  \".\")}}</span>\r\n\t\t\t\t\t.\r\n\t\t\t\r\n\t\t\t\t\t  <span class=\"function\">{{prod.right.fn_name}}</span> \r\n\t\t\t\r\n\t\t\t\t\t( <span *ngIf=\"prod.right.params.length>0\">\r\n\t\t\t\t\t\t\t<div class=\"param-container\" \r\n\t\t\t\t\t\t\t\t*ngFor=\"let p of prod.right.params; let i=index\">\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t\t [style.width.ch]=\"prod.right.params[i].value.length + 4\" \r\n\t\t\t\t\t\t\t\t [(ngModel)]=\"prod.right.params[i].value\"\r\n\t\t\t\t\t\t\t\t required spellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\r\n\t\t\t\t\t\t\t\t<span *ngIf='i<prod.right.params.length-1'>,</span>\r\n\t\t\t\t\t\t\t</div> \r\n\t\t\t\t\t\t</span>\t)\r\n\t\t\t\t\t\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Loop Break' || prod.type == 'Loop Continue'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t {{prod.left.expression}}\r\n\t\t\t\t</div>\r\n\t\t\t</div> \r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Comment'\">\r\n\t\t\t\t<input matInput class=\"tree-input comment\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t</div>\r\n\r\n\t\t\t\t\r\n\t\t\t<!--button-->\r\n\t\t\t<div style=\"float: right;\">\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t   \t\t(click)=\"prod.print = !prod.print\" \r\n\t\t\t   \t\tmatTooltip=\"Print value to console\"\r\n\t\t\t   \t\t*ngIf=\"prod.type =='Action' || prod.type =='Data'\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>print</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t\t\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t\t\t(click)=\"prod.enabled = !prod.enabled\" \r\n\t\t\t\t\tmatTooltip=\"Enable/Disable Line\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>check_circle</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t\t\r\n\t\t<ng-container *ngIf='false'>\r\n\t\t\t<div class=\"seg2 copy_paste_actions\"></div>\r\n\t\t\t<div class = \"seg2\">\r\n\t\t\t\t<div class=\"seg2btncontainer\">\r\n\r\n\t\t\t\t\t<div>\r\n\t\t\t\t\t\t<!-- cut copy paste -->\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Cut Procedure Line\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'cut')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_cut</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Copy Procedure Line\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"delete($event, prod, 'copy')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_copy</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Paste Procedure\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'paste')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_paste</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<div *ngIf=\"prod.type != 'Else' && prod.type != 'If'\">\r\n\t\t\t\t\t\t<!-- other actions -->\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t    *ngIf=\"prod.type =='Action'\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'help')\" tabindex=\"-1\">\r\n\t\t\t\t\t\t\t<mat-icon>help_outline</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\r\n\t\t\t\t\t   \t<button mat-button\r\n\t\t\t\t\t   \t\t(click)=\"prod.print = !prod.print\" \r\n\t\t\t\t\t   \t\tmatTooltip=\"Print value to console\"\r\n\t\t\t\t\t   \t\t*ngIf=\"prod.type =='Action' || prod.type =='Data'\" tabindex=\"-1\">\r\n\t\t\t\t    \t\t<mat-icon>print</mat-icon>\r\n\t\t\t\t\t    </button>\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\t(click)=\"prod.enabled = !prod.enabled\" \r\n\t\t\t\t\t\t\tmatTooltip=\"Enable/Disable Line\" tabindex=\"-1\">\r\n\t\t\t\t    \t\t<mat-icon>check_circle</mat-icon>\r\n\t\t\t\t\t    </button>\r\n\t\t\t\t        \r\n\t\t\t\t        <button mat-button matTooltip=\"Delete Line\" \r\n\t\t\t\t        \ttabindex=\"-1\"\r\n\t\t\t\t       \t\t(click)=\"onAction($event, prod, 'delete')\">\r\n\t\t\t\t    \t\t<mat-icon>delete</mat-icon>\r\n\t\t\t\t\t    </button>\r\n\t\t\t\t\t    <!-- <button (click)=\"disableProcedure(prod, $event)\">Disable</button>\r\n\t\t\t\t\t    <button (click)=\"go($event)\">Copy</button> -->\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t</ng-container>\r\n\t</div>\r\n\r\n\r\n\t<div class=\"children\" *ngIf=\"prod.children.length > 0 && prod.enabled\">\r\n\t\t<app-procedure-item \r\n\t\t\t*ngFor=\"let child of prod.children\" \r\n\t\t\t[prod]=\"child\"\r\n\t\t\t[root]=\"root\"\r\n\t\t\t[active_procedure]=\"active_procedure\"\r\n\t\t\t[level]=\"level+1\">\r\n\t\t</app-procedure-item>\r\n\t</div>\r\n</div>"
+module.exports = "<div [class.selected] = \"prod.id == active_procedure?.id\"\r\n\t\t[class.print] = \"prod.print\"\r\n\t\t[class.error] = \"prod.error\"\r\n\t\t[class.disabled] = \"!prod.enabled\">\r\n\t<div class = \"full-container\" \r\n\t\t*ngIf='prod'>\r\n\t\t<!-- (mouseover)=\"_activeProcedure = prod\" -->\r\n\t\t<div class = \"seg1\" \r\n\t\t\t[class.print]=\"prod.print\"\r\n\t\t\t[class.error]=\"prod.error\" \r\n\t\t\t[class.disabled]=\"!prod.enabled\"\r\n\t\t\t(click)=\"onSelect($event)\">\r\n\r\n\t\t\t<!-- template for data -->\r\n\t\t\t<div *ngIf=\"prod.type == 'Data'\"> \r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\trequired spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" required spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'If' || prod.type == 'ElseIf'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}} :::</span> \r\n\t\t\t\t <input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\"  \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\"\r\n\t\t\t\t\trequired spellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Else'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}}</span> \r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'For Loop'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>for each (</span> \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\r\n\t\t\t\t\t<span style=\"margin: 0px 10px;\">in</span>  \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" spellcheck=\"false\" list=\"variable-suggestions\"> \r\n\t\t\t\t\t)\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'While'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>while :::</span> \r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Action'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" required\r\n\t\t\t\t\t\tspellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\t\t\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"module\">{{prod.right.module.replace(\"_\",  \".\")}}</span>\r\n\t\t\t\t\t.\r\n\t\t\t\r\n\t\t\t\t\t  <span class=\"function\">{{prod.right.fn_name}}</span> \r\n\t\t\t\r\n\t\t\t\t\t( <span *ngIf=\"prod.right.params.length>0\">\r\n\t\t\t\t\t\t\t<div class=\"param-container\" \r\n\t\t\t\t\t\t\t\t*ngFor=\"let p of prod.right.params; let i=index\">\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t\t [style.width.ch]=\"prod.right.params[i].value.length + 4\" \r\n\t\t\t\t\t\t\t\t [(ngModel)]=\"prod.right.params[i].value\"\r\n\t\t\t\t\t\t\t\t required spellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\r\n\t\t\t\t\t\t\t\t<span *ngIf='i<prod.right.params.length-1'>,</span>\r\n\t\t\t\t\t\t\t</div> \r\n\t\t\t\t\t\t</span>\t)\r\n\t\t\t\t\t\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Loop Break' || prod.type == 'Loop Continue'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t {{prod.left.expression}}\r\n\t\t\t\t</div>\r\n\t\t\t</div> \r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Comment'\">\r\n\t\t\t\t<input matInput class=\"tree-input comment\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t</div>\r\n\r\n\t\t\t\t\r\n\t\t\t<!--button-->\r\n\t\t\t<div style=\"float: right;\" *ngIf='prod.id == active_procedure?.id'>\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t   \t\t(click)=\"prod.print = !prod.print\" \r\n\t\t\t   \t\tmatTooltip=\"Print value to console\"\r\n\t\t\t   \t\t*ngIf=\"prod.type =='Action' || prod.type =='Data'\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>print</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t\t\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t\t\t(click)=\"prod.enabled = !prod.enabled\" \r\n\t\t\t\t\tmatTooltip=\"Enable/Disable Line\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>check_circle</mat-icon>\r\n\t\t\t    </button>\r\n\r\n\t\t\t    <button class=\"btn--action\" matTooltip=\"Delete Line\" \r\n\t\t        \ttabindex=\"-1\"\r\n\t\t       \t\t(click)=\"delete($event)\">\r\n\t\t    \t\t<mat-icon>delete</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\t\t\r\n\t\t<ng-container *ngIf='false'>\r\n\t\t\t<div class=\"seg2 copy_paste_actions\"></div>\r\n\t\t\t<div class = \"seg2\">\r\n\t\t\t\t<div class=\"seg2btncontainer\">\r\n\r\n\t\t\t\t\t<div>\r\n\t\t\t\t\t\t<!-- cut copy paste -->\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Cut Procedure Line\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'cut')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_cut</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Copy Procedure Line\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"delete($event, prod, 'copy')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_copy</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t\tmatTooltip=\"Paste Procedure\" tabindex=\"-1\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'paste')\">\r\n\t\t\t\t\t\t\t<mat-icon>content_paste</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<div *ngIf=\"prod.type != 'Else' && prod.type != 'If'\">\r\n\t\t\t\t\t\t<!-- other actions -->\r\n\t\t\t\t\t\t<button mat-button \r\n\t\t\t\t\t\t    *ngIf=\"prod.type =='Action'\"\r\n\t\t\t\t\t\t\t(click)=\"onAction($event, prod, 'help')\" tabindex=\"-1\">\r\n\t\t\t\t\t\t\t<mat-icon>help_outline</mat-icon>\r\n\t\t\t\t\t\t</button>\r\n\t\t\t\t        \r\n\t\t\t\t        \r\n\t\t\t\t\t    <!-- <button (click)=\"disableProcedure(prod, $event)\">Disable</button>\r\n\t\t\t\t\t    <button (click)=\"go($event)\">Copy</button> -->\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t</ng-container>\r\n\t</div>\r\n\r\n\r\n\t<div class=\"children\" *ngIf=\"prod.children.length > 0 && prod.enabled\">\r\n\t\t<app-procedure-item \r\n\t\t\t*ngFor=\"let child of prod.children; trackBy: trackByFn\" \r\n\t\t\t[prod]=\"child\"\r\n\t\t\t[root]=\"root\"\r\n\t\t\t[active_procedure]=\"active_procedure\"\r\n\t\t\t[level]=\"level+1\">\r\n\t\t</app-procedure-item>\r\n\t</div>\r\n</div>"
 
 /***/ }),
 
@@ -11497,6 +11497,7 @@ module.exports = ".reset {\n  margin: 0px;\n  padding: 0px; }\n\n.default {\n  f
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ProcedureItemComponent; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("./node_modules/@angular/core/esm2015/core.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__ = __webpack_require__("./src/app/base-classes/node/NodeModule.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -11507,6 +11508,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 
+
 let ProcedureItemComponent = class ProcedureItemComponent {
     //@Output() action = new EventEmitter<{prod: IProcedure, type:string}>();
     ngOnInit() { }
@@ -11515,6 +11517,12 @@ let ProcedureItemComponent = class ProcedureItemComponent {
     }
     onSelect($event) {
         this.root.active_procedure = this.prod;
+    }
+    trackByFn(procedure) {
+        return procedure.id; // or song.id
+    }
+    delete($event) {
+        __WEBPACK_IMPORTED_MODULE_1__base_classes_node_NodeModule__["b" /* NodeUtils */].delete_procedure(this.root, this.prod);
     }
 };
 __decorate([
@@ -11733,7 +11741,7 @@ GraphEdgeComponent = __decorate([
     Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["n" /* Component */])({
         selector: 'app-graph-edge',
         template: __webpack_require__("./src/app/ui-components/graph/graph-edge/graph-edge.component.html"),
-        styles: [__webpack_require__("./src/app/ui-components/graph/graph-edge/graph-edge.component.scss")]
+        styles: [__webpack_require__("./src/app/ui-components/graph/graph-edge/graph-edge.component.scss")],
     }),
     __metadata("design:paramtypes", [])
 ], GraphEdgeComponent);
