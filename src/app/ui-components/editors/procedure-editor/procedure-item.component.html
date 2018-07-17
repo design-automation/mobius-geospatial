@@ -76,6 +76,8 @@
 			
 			<div *ngIf="prod.type == 'Action'">
 				<div class='procedure-item'>
+
+					<ng-container *ngIf='prod.hasReturn'>
 					
 					<input matInput class="tree-input" 
 						[style.width.ch]="prod.left.expression?.length + 4" 
@@ -84,6 +86,8 @@
 					
 			
 					<span class="equal">=</span>
+
+					</ng-container>
 			
 					<span class="module">{{prod.right.module.replace("_",  ".")}}</span>
 					.

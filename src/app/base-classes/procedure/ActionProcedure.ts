@@ -5,12 +5,16 @@ import {IComponent} from "./IComponent";
 
 export class ActionProcedure extends Procedure{
 
-	constructor(data ?: {result: string, module: string, function: string, params: any }){
+	private _hasReturn: boolean;
+
+	constructor(data ?: {result: string, module: string, function: string, params: any, hasReturn: boolean }){
 		super(ProcedureTypes.Action, false); 
 
 		if(data == undefined){
-			data = {result: undefined, module: undefined, function: undefined, params: []} 
+			data = {result: undefined, module: undefined, function: undefined, params: [], hasReturn: true} 
 		}
+
+		this._hasReturn = data.hasReturn;
 
 		let left: IComponent = { expression: data.result, 
 								 isAction: false, 
@@ -32,8 +36,12 @@ export class ActionProcedure extends Procedure{
 		}
 
 		super.right = (right);
+		
 	}
 
+	get hasReturn(){
+		return this._hasReturn;
+	}
 
 	update(prodData: any, parent: IProcedure): void{
 		super.update(prodData, parent);

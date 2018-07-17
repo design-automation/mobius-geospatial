@@ -116,14 +116,15 @@ export class ModuleboxComponent implements OnInit{
 	//
 	//  Adds a function from the function library to the procedure
 	// 
-	addActionProcedure(fn: {name: string, params: string[], module: string}){
+	addActionProcedure(fn: {name: string, params: string[], module: string, hasReturn: boolean}){
 		if(this.active_node == undefined){
 			alert("Oops.. No Node Selected");
 			return;
 		}
 
-		let prod_data :  {result: string, module: string, function: any, params: string[]} = 
-			{result: "", module: fn.module, function: fn.name, params: fn.params};
+		let prod_data :  
+			{result: string, module: string, function: any, params: string[], hasReturn: boolean} = 
+			{result: "", module: fn.module, function: fn.name, params: fn.params, hasReturn: fn.hasReturn};
 		let prod:IProcedure = ProcedureFactory.getProcedure( ProcedureTypes.Action, prod_data);
 		this.active_node = NodeUtils.add_procedure(this.active_node, prod);
 	}

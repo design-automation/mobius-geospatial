@@ -89,6 +89,28 @@ export class ModuleUtils{
 		return _nameCheck  &&  _versionCheck && _authorCheck; 
 	}
 
+	static hasReturn(func: Function): boolean{
+		const str = func.toString();
+		const regex = /return (\S+);/gm;
+		let m;
+		while ((m = regex.exec(str)) !== null) {
+		    // This is necessary to avoid infinite loops with zero-width matches
+		    if (m.index === regex.lastIndex) {
+		        regex.lastIndex++;
+		    }
+		    
+		    // The result can be accessed through the `m`-variable.
+		    m.forEach((match, groupIndex) => {
+		    	if(groupIndex == 1 && match != 'void'){
+		        	//console.log(`Found match, group ${groupIndex}: ${match}`);
+		        	return false;
+		    	}
+		    });
+		}
+
+		return true;
+	}
+
 	
 	static getParams(func: Function): {type: string, value: any}[]{
 
@@ -135,6 +157,7 @@ export class ModuleUtils{
 					let obj = { name: function_name, 
 								module: module_name,
 								params: this.getParams( func ),
+								hasReturn: this.hasReturn( func ),
 								def: func
 							  }
 
