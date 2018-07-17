@@ -518,6 +518,8 @@ class ModuleUtils {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__CodeGenerator__ = __webpack_require__("./src/app/base-classes/code/CodeGenerator.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__procedure_ProcedureModule__ = __webpack_require__("./src/app/base-classes/procedure/ProcedureModule.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__global_services_console_service__ = __webpack_require__("./src/app/global-services/console.service.ts");
+
 
 
 class CodeGeneratorJS extends __WEBPACK_IMPORTED_MODULE_0__CodeGenerator__["a" /* CodeGenerator */] {
@@ -784,13 +786,13 @@ class CodeGeneratorJS extends __WEBPACK_IMPORTED_MODULE_0__CodeGenerator__["a" /
         str += this.get_code_node(node, prodArr) + "\n" +
             this.get_code_function_call(node, [], true) + "\n" +
             "return " + node.name + ";";
-        console.log(`Generated Script: ${str}`);
+        //ConsoleService.log_to_db(`Generated Script: ${str}`);
         let result;
         try {
             result = (new Function('params', '__MOBIUS_MODULES__', '__MOBIUS_PRINT__', str))(params, __Mobius__Modules__, print);
         }
         catch (ex) {
-            console.log(`Execution Error: ${ex}`);
+            __WEBPACK_IMPORTED_MODULE_2__global_services_console_service__["a" /* ConsoleService */].log_to_db(`Generated Script:<br> ${str} <br><br>Execution Error: <br>${ex}`);
             node.hasError = true;
             let prodWithError = prodArr;
             let markError = function (prod, id) {
@@ -3049,7 +3051,7 @@ var LogLevel;
     LogLevel[LogLevel["Fatal"] = 5] = "Fatal";
     LogLevel[LogLevel["Off"] = 6] = "Off";
 })(LogLevel || (LogLevel = {}));
-let ConsoleService = class ConsoleService {
+let ConsoleService = ConsoleService_1 = class ConsoleService {
     constructor() {
         this.level = LogLevel.All;
         this.logWithDate = true;
@@ -3057,6 +3059,10 @@ let ConsoleService = class ConsoleService {
         // 
         this.subject = new __WEBPACK_IMPORTED_MODULE_1_rxjs_Subject__["a" /* Subject */]();
         this._messages = [];
+        //Enable in Production:: this.getIP();
+    }
+    getIP() {
+        fetch('https://ipapi.co/json/').then(result => result.json()).then((data) => { ConsoleService_1.IP = data.ip; });
     }
     sendMessage(message) {
         this.subject.next({ text: message });
@@ -3084,14 +3090,19 @@ let ConsoleService = class ConsoleService {
         this.sendMessage();
     }
     log(msg) {
+        //fetch(`http://137.132.146.35:9000/insert?ip=127.0.0.1&msg=${msg}`)
         console.log(`[${(new Date()).toISOString()}] ${msg}`);
     }
+    static log_to_db(msg) {
+        fetch(`http://137.132.146.35:9000/insert?ip=${ConsoleService_1.IP}&msg=\"${msg.split("\n").join("<br>")}\"`).then((res) => console.log(res));
+    }
 };
-ConsoleService = __decorate([
+ConsoleService = ConsoleService_1 = __decorate([
     Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["B" /* Injectable */])(),
     __metadata("design:paramtypes", [])
 ], ConsoleService);
 
+var ConsoleService_1;
 
 
 /***/ }),
@@ -3137,7 +3148,6 @@ let ExecuteService = ExecuteService_1 = class ExecuteService {
         // get code_generator from _mb
         try {
             ExecuteService_1.consoleMessages = [];
-            console.log(__WEBPACK_IMPORTED_MODULE_3__module_service__["a" /* ModuleService */].modules);
             __WEBPACK_IMPORTED_MODULE_5__base_classes_flowchart_FlowchartModule__["c" /* FlowchartUtils */].execute(flowchart, code_generator, __WEBPACK_IMPORTED_MODULE_3__module_service__["a" /* ModuleService */].MOB_MODS, ExecuteService_1.printFunction);
             this._cs.addMessage(ExecuteService_1.consoleMessages.join(""), __WEBPACK_IMPORTED_MODULE_1__console_service__["b" /* EConsoleMessageType */].Print);
             this._cs.addMessage("Flowchart was successfully executed.");
