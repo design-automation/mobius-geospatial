@@ -435,6 +435,25 @@ class ModuleUtils {
         let _authorCheck = this.getAuthor(mod1) == this.getAuthor(mod2);
         return _nameCheck && _versionCheck && _authorCheck;
     }
+    static hasReturn(func) {
+        const str = func.toString();
+        const regex = /return (\S+);/gm;
+        let m;
+        while ((m = regex.exec(str)) !== null) {
+            // This is necessary to avoid infinite loops with zero-width matches
+            if (m.index === regex.lastIndex) {
+                regex.lastIndex++;
+            }
+            // The result can be accessed through the `m`-variable.
+            m.forEach((match, groupIndex) => {
+                if (groupIndex == 1 && match != 'void') {
+                    //console.log(`Found match, group ${groupIndex}: ${match}`);
+                    return false;
+                }
+            });
+        }
+        return true;
+    }
     static getParams(func) {
         let fnStr = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
         let result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).split(","); //.match( /([^\s,]+)/g);
@@ -469,6 +488,7 @@ class ModuleUtils {
                     let obj = { name: function_name,
                         module: module_name,
                         params: this.getParams(func),
+                        hasReturn: this.hasReturn(func),
                         def: func
                     };
                     fn.push(obj);
@@ -1052,7 +1072,6 @@ class FlowchartReader {
                 console.warn(`Skipped creating edge between ${in_node} and ${out_node}`);
             }
         }
-        console.log("recreated fc: ", fc);
         return fc;
     }
 }
@@ -1782,7 +1801,7 @@ class NodeUtils {
                 ///	 fetch data first
                 ///
                 live_data_downloads++;
-                let urlString = i.getOpts().url;
+                let urlString = i.opts.url;
                 fetch(urlString)
                     .then((res) => res.text())
                     .then((out) => {
@@ -1864,12 +1883,11 @@ class InputPort extends __WEBPACK_IMPORTED_MODULE_0__Port__["a" /* Port */] {
             this._type = __WEBPACK_IMPORTED_MODULE_1__InputPortTypes__["a" /* InputPortTypes */].Input;
         }
     }
-    setOpts(opts) {
-        this.opts = opts;
-        //todo: check if options valid for type
-    }
-    getOpts() {
-        return this.opts;
+    update(portData, type) {
+        super.update(portData, type);
+        if (!(this._type === __WEBPACK_IMPORTED_MODULE_1__InputPortTypes__["a" /* InputPortTypes */].FilePicker || this._type === __WEBPACK_IMPORTED_MODULE_1__InputPortTypes__["a" /* InputPortTypes */].URL) && !portData['_connected']) {
+            this.value = portData["_computed"];
+        }
     }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = InputPort;
@@ -1959,7 +1977,7 @@ class Port {
         this._executionAddr = undefined;
         this._id = __WEBPACK_IMPORTED_MODULE_0__misc_GUID__["a" /* IdGenerator */].getId();
         this._name = name;
-        this.opts = {};
+        this._opts = {};
     }
     // ----- Update function for Port from Data 
     update(portData, type) {
@@ -1972,11 +1990,13 @@ class Port {
         else if (typeof (this._type) == "number" && type == "out") {
             //this._type = <OutputPortTypes>Object.keys(OutputPortTypes)[this._type]
         }
+        // will be programmatically selected later 
         this._selected = false;
+        // will be programmatically connected later
         this._connected = false;
         this._disabled = portData["_disabled"];
         this._default = portData["_default"];
-        this.opts = portData["opts"];
+        this._opts = portData["_opts"];
         // todo: assign computed also??
         //this._computed = portData["_computed"];
     }
@@ -1998,7 +2018,7 @@ class Port {
     set type(value) {
         this._type = value;
         if (value == __WEBPACK_IMPORTED_MODULE_1__InputPortTypes__["a" /* InputPortTypes */].Slider) {
-            this.setOpts({ min: 0, max: 100, step: 1 });
+            this.opts = { min: 0, max: 100, step: 1 };
             this.setDefaultValue(50);
         }
     }
@@ -2008,6 +2028,12 @@ class Port {
     set value(value) {
         console.log(`Setting value of Port: ${this.name} as ${value}`);
         this.setComputedValue(value);
+    }
+    get opts() {
+        return this._opts;
+    }
+    set opts(value) {
+        this._opts = value;
     }
     getValue() {
         let final;
@@ -2055,11 +2081,6 @@ class Port {
     }
     // ---- Getters and Settings
     // TODO: Convert to get/set methods
-    setOpts(opts) {
-    }
-    getOpts() {
-        throw Error("not defined");
-    }
     isSelected() {
         return this._selected;
     }
@@ -2149,8 +2170,9 @@ class ActionProcedure extends __WEBPACK_IMPORTED_MODULE_0__Procedure__["a" /* Pr
     constructor(data) {
         super(__WEBPACK_IMPORTED_MODULE_1__ProcedureTypes__["a" /* ProcedureTypes */].Action, false);
         if (data == undefined) {
-            data = { result: undefined, module: undefined, function: undefined, params: [] };
+            data = { result: undefined, module: undefined, function: undefined, params: [], hasReturn: true };
         }
+        this._hasReturn = data.hasReturn;
         let left = { expression: data.result,
             isAction: false,
             module: undefined,
@@ -2169,6 +2191,9 @@ class ActionProcedure extends __WEBPACK_IMPORTED_MODULE_0__Procedure__["a" /* Pr
             super.left = (left);
         }
         super.right = (right);
+    }
+    get hasReturn() {
+        return this._hasReturn;
     }
     update(prodData, parent) {
         super.update(prodData, parent);
@@ -9801,6 +9826,7 @@ let PortTypePipe = class PortTypePipe {
     }
     getInputTypeName(type) {
         let str_rep = undefined;
+        alert(type);
         switch (type) {
             case __WEBPACK_IMPORTED_MODULE_1__base_classes_port_PortModule__["b" /* InputPortTypes */].ColorPicker:
                 str_rep = "Color";
@@ -9818,7 +9844,7 @@ let PortTypePipe = class PortTypePipe {
                 str_rep = "Slider";
                 break;
             case __WEBPACK_IMPORTED_MODULE_1__base_classes_port_PortModule__["b" /* InputPortTypes */].URL:
-                str_rep = "WebURL";
+                str_rep = "URL";
                 break;
             case __WEBPACK_IMPORTED_MODULE_1__base_classes_port_PortModule__["b" /* InputPortTypes */].Checkbox:
                 str_rep = "Checkbox";
@@ -10324,7 +10350,7 @@ let ModuleboxComponent = class ModuleboxComponent {
             alert("Oops.. No Node Selected");
             return;
         }
-        let prod_data = { result: "", module: fn.module, function: fn.name, params: fn.params };
+        let prod_data = { result: "", module: fn.module, function: fn.name, params: fn.params, hasReturn: fn.hasReturn };
         let prod = __WEBPACK_IMPORTED_MODULE_5__base_classes_procedure_ProcedureModule__["a" /* ProcedureFactory */].getProcedure(__WEBPACK_IMPORTED_MODULE_5__base_classes_procedure_ProcedureModule__["b" /* ProcedureTypes */].Action, prod_data);
         this.active_node = __WEBPACK_IMPORTED_MODULE_6__base_classes_node_NodeUtils__["a" /* NodeUtils */].add_procedure(this.active_node, prod);
     }
@@ -11018,7 +11044,7 @@ FlowchartViewerComponent = __decorate([
 /***/ "./src/app/ui-components/editors/parameter-editor/parameter-editor.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"viewer\">\r\n\r\n\t<div class=\"container\">\r\n\t\t\r\n\t\t<!-- default -->\r\n\t\t<div class=\"default\" *ngIf=\"!active_node\">No node selected</div>\r\n\r\n\t\t<!-- main -->\r\n\t\t<div class=\"view-container\" *ngIf=\"active_node\">\r\n\t\t\t\r\n\t\t\t<mat-accordion multi=\"true\" [displayMode]=\"flat\">\r\n\r\n\t\t\t\t<!-- inputs -->\r\n\t\t\t\t<mat-expansion-panel [disabled]=\"active_node.inputs.length == 0\" [expanded]=\"true\">\r\n\t\t\t\t\t\r\n\t\t\t\t\t<mat-expansion-panel-header>\r\n\t\t\t\t\t\t<mat-panel-title>\r\n\t\t\t\t\t\t  Inputs ({{ active_node.inputs.length }})\r\n\t\t\t\t\t\t</mat-panel-title>\r\n\t\t\t\t\t</mat-expansion-panel-header>\r\n\r\n\t\t\t\t\t<div class='port input' *ngFor=\"let inp of active_node.inputs; let i=index\">\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t<div class=\"content\">\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class='row'>\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t<input \r\n\t\t\t\t\t\t\t\t    name={{inp.name}}_name\r\n\t\t\t\t\t\t\t\t    class=\"content\"\r\n\t\t\t\t\t\t\t\t\tcontenteditable=\"true\"\r\n\t\t\t\t\t\t\t\t\tspellcheck=\"false\" \r\n\t\t\t\t\t\t\t\t\t[(ngModel)]=\"inp.name\">\r\n\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t<div class='row'>\r\n\t\t\t\t\t\t\t\t<!--<span class='label'>Type</span>-->\r\n\t\t\t\t\t\t\t\t<span class='content'>\r\n\t\t\t\t\t\t\t\t\t<select \r\n\t\t\t\t\t\t\t\t\t    name={{inp.name}}_type\r\n\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"inp.type\">\r\n\t\t\t\t\t\t         \t    <option *ngFor=\"let x of inputPortOpts\" [value]=\"x\" [selected]=\"inp.type == x\">\r\n\t\t\t\t\t\t         \t    \t{{ x | port_type_name }}\r\n\t\t\t\t\t\t         \t    </option>\r\n\t\t\t\t\t\t            </select>\r\n\t\t\t\t\t\t\t\t</span>\r\n\t\t\t\t\t\t\t</div>\r\n\t\r\n\t\t\t\t\t\t</div>\t\t\t\r\n\r\n\t\t\t\t\t\t<div class=\"controls\">\r\n\t\t\t\t\t\t\t<button mat-button (click)='openSettingsDialog(inp)' tabindex=\"-1\">\r\n\t\t\t\t\t\t\t\t<mat-icon>settings</mat-icon>\r\n\t\t\t\t\t\t\t</button>\r\n\t\t\t\t\t        <button mat-button (click)='delete_port($event, inp)' tabindex=\"-1\">\r\n\t\t\t\t\t    \t\t<mat-icon>delete</mat-icon>\r\n    \t\t\t\t\t    </button>\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t</div>\r\n\r\n\t\t\t\t</mat-expansion-panel>\r\n\r\n\t\t\t\t<!-- outputs -->\r\n\t\t\t\t<mat-expansion-panel [disabled]=\"active_node.outputs.length == 0\" [expanded]=\"true\">\r\n\t\t\t\t\t\r\n\t\t\t\t\t<mat-expansion-panel-header>\r\n\t\t\t\t\t\t<mat-panel-title>\r\n\t\t\t\t\t\t  Outputs ({{ active_node.outputs.length }})\r\n\t\t\t\t\t\t</mat-panel-title>\r\n\t\t\t\t\t</mat-expansion-panel-header>\r\n\r\n\t\t\t\t\t<div class='port output' *ngFor=\"let output of active_node.outputs; let o=index\">\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t<div class=\"content\">\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class='row'>\r\n\t\t\t\t\t\t\t\t<input \r\n\t\t\t\t\t\t\t\t\t    name={{output.name}}_name\r\n\t\t\t\t\t\t\t\t\t    class=\"content\"\r\n\t\t\t\t\t\t\t\t\t\tcontenteditable=\"true\"\r\n\t\t\t\t\t\t\t\t\t\tspellcheck=\"false\" \r\n\t\t\t\t\t\t\t\t\t\t[(ngModel)]=\"output.name\"/>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class='row'>\r\n\t\t\t\t\t\t\t\t<span class='content'>\r\n\t\t\t\t\t\t\t\t\t<select name={{output.name}}_type\r\n\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"output.type\">\r\n\t\t\t\t\t\t         \t    <option *ngFor=\"let x of outputPortOpts\" [value]=\"x\" [selected]=\"x == output.type\">\r\n\t\t\t\t\t\t         \t    \t{{ x | port_type_name }}\r\n\t\t\t\t\t\t         \t    </option>\r\n\t\t\t\t\t\t            </select>\r\n\t\t\t\t\t\t\t\t</span>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class=\"controls\">\r\n\t\t\t\t\t\t        <button mat-button (click)='delete_port($event, output)' tabindex=\"-1\">\r\n\t\t\t\t\t\t    \t\t<mat-icon>delete</mat-icon>\r\n\t    \t\t\t\t\t    </button>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\r\n\t\t\t\t</mat-expansion-panel>\r\n\r\n\t\t\t</mat-accordion>\r\n\r\n\t\t</div>\r\n\r\n\t</div>\r\n\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"viewer\">\r\n\r\n\t<div class=\"container\">\r\n\t\t\r\n\t\t<!-- default -->\r\n\t\t<div class=\"default\" *ngIf=\"!active_node\">No node selected</div>\r\n\r\n\t\t<!-- main -->\r\n\t\t<div class=\"view-container\" *ngIf=\"active_node\">\r\n\t\t\t\r\n\t\t\t<mat-accordion multi=\"true\" [displayMode]=\"flat\">\r\n\r\n\t\t\t\t<!-- inputs -->\r\n\t\t\t\t<mat-expansion-panel [disabled]=\"active_node.inputs.length == 0\" [expanded]=\"true\">\r\n\t\t\t\t\t\r\n\t\t\t\t\t<mat-expansion-panel-header>\r\n\t\t\t\t\t\t<mat-panel-title>\r\n\t\t\t\t\t\t  Inputs ({{ active_node.inputs.length }})\r\n\t\t\t\t\t\t</mat-panel-title>\r\n\t\t\t\t\t</mat-expansion-panel-header>\r\n\r\n\t\t\t\t\t<div class='port input' *ngFor=\"let inp of active_node.inputs; let i=index\">\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t<div class=\"content\">\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class='row'>\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t<input \r\n\t\t\t\t\t\t\t\t    name={{inp.name}}_name\r\n\t\t\t\t\t\t\t\t    class=\"content\"\r\n\t\t\t\t\t\t\t\t\tcontenteditable=\"true\"\r\n\t\t\t\t\t\t\t\t\tspellcheck=\"false\" \r\n\t\t\t\t\t\t\t\t\t[(ngModel)]=\"inp.name\">\r\n\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t\t<div class='row'>\r\n\t\t\t\t\t\t\t\t<!--<span class='label'>Type</span>-->\r\n\t\t\t\t\t\t\t\t<span class='content'>\r\n\t\t\t\t\t\t\t\t\t<select \r\n\t\t\t\t\t\t\t\t\t    name={{inp.name}}_type\r\n\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"inp.type\">\r\n\t\t\t\t\t\t         \t    <option *ngFor=\"let x of inputPortOpts\" [value]=\"x\" [selected]=\"inp.type == x\">\r\n\t\t\t\t\t\t         \t    \t{{x}}\r\n\t\t\t\t\t\t         \t    </option>\r\n\t\t\t\t\t\t            </select>\r\n\t\t\t\t\t\t\t\t</span>\r\n\t\t\t\t\t\t\t</div>\r\n\t\r\n\t\t\t\t\t\t</div>\t\t\t\r\n\r\n\t\t\t\t\t\t<div class=\"controls\">\r\n\t\t\t\t\t\t\t<button mat-button *ngIf='inp.type == \"Slider\"'  \r\n\t\t\t\t\t\t\t\t(click)='openSettingsDialog(inp)' tabindex=\"-1\">\r\n\t\t\t\t\t\t\t\t<mat-icon>settings</mat-icon>\r\n\t\t\t\t\t\t\t</button>\r\n\t\t\t\t\t        <button mat-button (click)='delete_port($event, inp)' tabindex=\"-1\">\r\n\t\t\t\t\t    \t\t<mat-icon>delete</mat-icon>\r\n    \t\t\t\t\t    </button>\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t</div>\r\n\r\n\t\t\t\t</mat-expansion-panel>\r\n\r\n\t\t\t\t<!-- outputs -->\r\n\t\t\t\t<mat-expansion-panel [disabled]=\"active_node.outputs.length == 0\" [expanded]=\"true\">\r\n\t\t\t\t\t\r\n\t\t\t\t\t<mat-expansion-panel-header>\r\n\t\t\t\t\t\t<mat-panel-title>\r\n\t\t\t\t\t\t  Outputs ({{ active_node.outputs.length }})\r\n\t\t\t\t\t\t</mat-panel-title>\r\n\t\t\t\t\t</mat-expansion-panel-header>\r\n\r\n\t\t\t\t\t<div class='port output' *ngFor=\"let output of active_node.outputs; let o=index\">\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t<div class=\"content\">\r\n\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class='row'>\r\n\t\t\t\t\t\t\t\t<input \r\n\t\t\t\t\t\t\t\t\t    name={{output.name}}_name\r\n\t\t\t\t\t\t\t\t\t    class=\"content\"\r\n\t\t\t\t\t\t\t\t\t\tcontenteditable=\"true\"\r\n\t\t\t\t\t\t\t\t\t\tspellcheck=\"false\" \r\n\t\t\t\t\t\t\t\t\t\t[(ngModel)]=\"output.name\"/>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class='row'>\r\n\t\t\t\t\t\t\t\t<span class='content'>\r\n\t\t\t\t\t\t\t\t\t<select name={{output.name}}_type\r\n\t\t\t\t\t\t\t\t\t    [(ngModel)]=\"output.type\">\r\n\t\t\t\t\t\t         \t    <option *ngFor=\"let x of outputPortOpts\" [value]=\"x\" [selected]=\"x == output.type\">\r\n\t\t\t\t\t\t         \t    \t{{ x | port_type_name }}\r\n\t\t\t\t\t\t         \t    </option>\r\n\t\t\t\t\t\t            </select>\r\n\t\t\t\t\t\t\t\t</span>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class=\"controls\">\r\n\t\t\t\t\t\t        <button mat-button (click)='delete_port($event, output)' tabindex=\"-1\">\r\n\t\t\t\t\t\t    \t\t<mat-icon>delete</mat-icon>\r\n\t    \t\t\t\t\t    </button>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\r\n\t\t\t\t</mat-expansion-panel>\r\n\r\n\t\t\t</mat-accordion>\r\n\r\n\t\t</div>\r\n\r\n\t</div>\r\n\r\n</div>\r\n\r\n"
 
 /***/ }),
 
@@ -11064,9 +11090,9 @@ let ParameterEditorComponent = class ParameterEditorComponent {
         this.inputPortOpts = [
             __WEBPACK_IMPORTED_MODULE_2__base_classes_port_PortModule__["b" /* InputPortTypes */].Input,
             __WEBPACK_IMPORTED_MODULE_2__base_classes_port_PortModule__["b" /* InputPortTypes */].Slider,
-            __WEBPACK_IMPORTED_MODULE_2__base_classes_port_PortModule__["b" /* InputPortTypes */].URL,
             __WEBPACK_IMPORTED_MODULE_2__base_classes_port_PortModule__["b" /* InputPortTypes */].Checkbox,
-            __WEBPACK_IMPORTED_MODULE_2__base_classes_port_PortModule__["b" /* InputPortTypes */].FilePicker
+            __WEBPACK_IMPORTED_MODULE_2__base_classes_port_PortModule__["b" /* InputPortTypes */].FilePicker,
+            __WEBPACK_IMPORTED_MODULE_2__base_classes_port_PortModule__["b" /* InputPortTypes */].URL
         ];
         this.outputPortOpts = [
             __WEBPACK_IMPORTED_MODULE_2__base_classes_port_PortModule__["d" /* OutputPortTypes */].Text,
@@ -11170,9 +11196,8 @@ let ParameterSettingsDialogComponent = class ParameterSettingsDialogComponent {
         this.data = data;
         this.http = http;
         this.inputPortTypes = __WEBPACK_IMPORTED_MODULE_2__base_classes_port_PortModule__["b" /* InputPortTypes */];
-        this.type = data.input.getType();
+        this.type = data.input.type;
         this.input = data.input;
-        this.opts = this.input.getOpts();
     }
     updateDefaultValue($event) {
         let value = $event.srcElement.value;
@@ -11203,7 +11228,7 @@ let ParameterSettingsDialogComponent = class ParameterSettingsDialogComponent {
         else {
             this.opts[prop] = 0;
         }
-        this.input.setOpts(this.opts);
+        this.input.opts = this.opts;
     }
     default(input) {
         return input.getDefaultValue();
@@ -11265,7 +11290,7 @@ ParameterSettingsDialogComponent = __decorate([
 /***/ "./src/app/ui-components/editors/parameter-editor/parameter-settings-dialog.html":
 /***/ (function(module, exports) {
 
-module.exports = "<h2>Input Name: {{input.getName()}}</h2>\r\n<h3>Input Type: {{input.getType()}}</h3>\r\n\r\n<div *ngIf='type == inputPortTypes.Input'>\r\n\r\n\t<form class=\"example-form\">\r\n\t  <mat-form-field class=\"example-full-width\">\r\n\t    <textarea matInput \r\n\t    \t\tmatTextareaAutosize \r\n\t\t\t\tmatAutosizeMinRows=\"2\"\r\n    \t\t\tmatAutosizeMaxRows=\"8\" \r\n    \t\t\tplaceholder=\"Default Value\" \r\n    \t\t\tvalue=\"{{ default(input) }}\"\r\n    \t\t\t(change)=\"updateDefaultValue($event, input)\">\r\n\t\t</textarea>\r\n\t  </mat-form-field>\r\n\t</form>\r\n\t\r\n</div>\r\n\r\n<div *ngIf='type == inputPortTypes.Slider'>\r\n\t<form class=\"example-form\"\r\n\t\t\tstyle=\"display: flex; flex-direction: column;\">\r\n\t\t  <mat-form-field class=\"example-full-width\" style=\"height: 45px;\">\r\n\t\t    <input matInput placeholder=\"Minimum Value\" \r\n\t\t    \t(change)=\"updateSliderOpts($event, 'min')\" \r\n\t\t    \tvalue=\"{{ opts.min }}\">\r\n\t\t    <!-- <mat-hint>Enter the minimum slider value</mat-hint> -->\r\n\t\t  </mat-form-field>\r\n\r\n\t\t  <mat-form-field class=\"example-full-width\"  style=\"height: 45px;\">\r\n\t\t    <input matInput placeholder=\"Maximum Value\" \r\n\t\t    \t(change)=\"updateSliderOpts($event, 'max')\" \r\n\t\t    \tvalue=\"{{ opts.max }}\">\r\n\t\t  \t<!-- <mat-hint>Enter the maximum slider value</mat-hint> -->\r\n\t\t  </mat-form-field>\r\n\r\n\t\t  <mat-form-field class=\"example-full-width\"  style=\"height: 45px;\">\r\n\t\t    <input matInput placeholder=\"Step\" \r\n\t\t    \t(change)=\"updateSliderOpts($event, 'step')\" \r\n\t\t    \tvalue=\"{{ opts.step }}\">\r\n\t\t  \t<!-- <mat-hint>Enter the step size value</mat-hint> -->\r\n\t\t  </mat-form-field>\r\n\r\n\t\t  <mat-form-field class=\"example-full-width\"  style=\"height: 45px;\">\r\n\t\t    <input matInput placeholder=\"Default Value\" \r\n\t\t    (change)=\"updateDefaultValue($event, input)\" \r\n\t\t    value=\"{{ default(input) }}\">\r\n\t\t  \t<!-- <mat-hint>Enter the default value</mat-hint> -->\r\n\t\t  </mat-form-field>\r\n\r\n\r\n\r\n\t</form>\r\n</div>\r\n\r\n\r\n<div *ngIf='type == inputPortTypes.FilePicker'>\r\n\t<!-- if input type == FilePicker -->\r\n\t<div class=\"value\">\r\n\t\t<input type=\"file\" id=\"file\" (change)=\"handleFileInput($event.target.files, input)\">\r\n\t\t<br><br>\r\n\t\t<div *ngIf=\"input.getDefaultValue()\">\r\n\t\t\t<h3>Default File:</h3> \r\n\t\t\t<div style=\"max-height: 150px; overflow-y: auto\">File Loaded<!-- {{input.getDefaultValue()}} --></div>\r\n\t\t</div>\r\n\t</div>\r\n</div>\r\n\r\n<div *ngIf='type == inputPortTypes.URL'>\r\n\t<!-- if input type == FilePicker -->\r\n\t<!-- <div class=\"value\">\r\n\t\thttp://<input type=\"text\" [(ngModel)]=\"url\">\r\n\t\t<button (click)=\"handleURL($event, input)\">Get Data</button>\r\n\t\t<button *ngIf=\"input.getDefaultValue()\" (click)=\"clear($event, input)\">Clear</button>\r\n\t\t<br><br>\r\n\t\t<div *ngIf=\"input.getDefaultValue()\">\r\n\t\t\t<h3>Default File:</h3>\r\n\r\n\t\t\t<p>Loaded file!</p>\r\n\t\t</div>\r\n\t</div> -->\r\n\tURL:\r\n\t<small><input type=\"text\" value=\"{{input.getOpts().url}}\" (change)=\"updateURL($event, input)\" #url></small>\r\n\t<!-- <button (click)=\"getDataFromURL($event, input)\">Get Data</button> -->\r\n</div>\r\n\r\n\r\n<!-- checkbox -->\r\n<div *ngIf='type == inputPortTypes.Checkbox'>\r\n\t<div>\r\n\t\t<mat-checkbox #val \r\n\t\t(change)=\"input.setDefaultValue(val.checked)\" \r\n\t\t[checked]=\"input.getDefaultValue()\"></mat-checkbox>\r\n\t</div>\r\n</div>\r\n\r\n\r\n<!-- <div *ngIf='type == inputPortTypes.File'>\r\n\tSunt dolor in officia veniam id tempor occaecat sint ea exercitation ut aliqua esse eu laborum elit commodo ea amet magna id consequat dolor occaecat esse id tempor labore nulla nisi velit mollit voluptate.\r\n</div>\r\n\r\n<div *ngIf='type == inputPortTypes.Input'>\r\n\tSunt dolor in officia veniam id tempor occaecat sint ea exercitation ut aliqua esse eu laborum elit commodo ea amet magna id consequat dolor occaecat esse id tempor labore nulla nisi velit mollit voluptate.\r\n</div> -->\r\n<!-- \r\n<div class=\"options\" style=\"width: 100%\" *ngIf='inp.getType() == inputPortOpts[1]'>\r\n\tMin: <input/><br>\r\n\tMax: <input/><br>\r\n\tStep: <input/><br>\r\n\tvalue: <input/><br>\r\n</div> -->"
+module.exports = "<h2>Input Name: {{input.name}}</h2>\r\n<h3>Input Type: {{input.type}}</h3>\r\n\r\n<div *ngIf='type == inputPortTypes.Slider'>\r\n\t<form class=\"example-form\" style=\"display: flex; flex-direction: column;\">\r\n\t  <input placeholder=\"Minimum Value\" [(ngModel)]=\"input.opts.min\" value=\"{{ input.opts.min }}\" name='{{input.id}}#min'>\r\n\t  <input placeholder=\"Maximum Value\" [(ngModel)]=\"input.opts.max\" value=\"{{ input.opts.max }}\"  name='{{input.id}}#max'>\r\n      <input placeholder=\"Step\" [(ngModel)]=\"input.opts.step\"  value=\"{{ input.opts.step }}\"  name='{{input.id}}#step'>\r\n\t</form>\r\n</div>\r\n\r\n\r\n<ng-container *ngIf='false'>\r\n\r\n<div *ngIf='type == inputPortTypes.Input'>\r\n\r\n\t<form class=\"example-form\">\r\n\t  <mat-form-field class=\"example-full-width\">\r\n\t    <textarea matInput \r\n\t    \t\tmatTextareaAutosize \r\n\t\t\t\tmatAutosizeMinRows=\"2\"\r\n    \t\t\tmatAutosizeMaxRows=\"8\" \r\n    \t\t\tplaceholder=\"Default Value\" \r\n    \t\t\tvalue=\"{{ default(input) }}\"\r\n    \t\t\t(change)=\"updateDefaultValue($event, input)\">\r\n\t\t</textarea>\r\n\t  </mat-form-field>\r\n\t</form>\r\n</div>\r\n\r\n<div *ngIf='type == inputPortTypes.FilePicker'>\r\n\t<div class=\"value\">\r\n\t\t<input type=\"file\" id=\"file\" (change)=\"handleFileInput($event.target.files, input)\">\r\n\t\t<br><br>\r\n\t\t<div *ngIf=\"input.getDefaultValue()\">\r\n\t\t\t<h3>Default File:</h3> \r\n\t\t\t<div style=\"max-height: 150px; overflow-y: auto\">File Loaded<!-- {{input.getDefaultValue()}} --></div>\r\n\t\t</div>\r\n\t</div>\r\n</div>\r\n\r\n<div *ngIf='type == inputPortTypes.URL'>\r\n\tURL:\r\n\t<small><input type=\"text\" value=\"{{input.getOpts().url}}\" (change)=\"updateURL($event, input)\" #url></small>\r\n</div>\r\n\r\n<div *ngIf='type == inputPortTypes.Checkbox'>\r\n\t<div>\r\n\t\t<mat-checkbox #val \r\n\t\t(change)=\"input.setDefaultValue(val.checked)\" \r\n\t\t[checked]=\"input.getDefaultValue()\"></mat-checkbox>\r\n\t</div>\r\n</div>\r\n\r\n</ng-container>"
 
 /***/ }),
 
@@ -11512,7 +11537,7 @@ ProcedureEditorComponent = __decorate([
 /***/ "./src/app/ui-components/editors/procedure-editor/procedure-item.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div [class.selected] = \"prod.id == active_procedure?.id\"\r\n\t\t[class.print] = \"prod.print\"\r\n\t\t[class.error] = \"prod.error\"\r\n\t\t[class.disabled] = \"!prod.enabled\">\r\n\t<div class = \"full-container\" \r\n\t\t*ngIf='prod'>\r\n\t\t<!-- (mouseover)=\"_activeProcedure = prod\" -->\r\n\t\t<div class = \"seg1\" \r\n\t\t\t[class.print]=\"prod.print\"\r\n\t\t\t[class.error]=\"prod.error\" \r\n\t\t\t[class.disabled]=\"!prod.enabled\"\r\n\t\t\t(click)=\"onSelect($event)\">\r\n\r\n\t\t\t<!-- template for data -->\r\n\t\t\t<div *ngIf=\"prod.type == 'Data'\"> \r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\trequired spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" required spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'If' || prod.type == 'ElseIf'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}} :::</span> \r\n\t\t\t\t <input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\"  \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\"\r\n\t\t\t\t\trequired spellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Else'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}}</span> \r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'For Loop'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>for each (</span> \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\r\n\t\t\t\t\t<span style=\"margin: 0px 10px;\">in</span>  \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" spellcheck=\"false\" list=\"variable-suggestions\"> \r\n\t\t\t\t\t)\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'While'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>while :::</span> \r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Action'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" required\r\n\t\t\t\t\t\tspellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\t\t\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"module\">{{prod.right.module.replace(\"_\",  \".\")}}</span>\r\n\t\t\t\t\t.\r\n\t\t\t\r\n\t\t\t\t\t  <span class=\"function\">{{prod.right.fn_name}}</span> \r\n\t\t\t\r\n\t\t\t\t\t( <span *ngIf=\"prod.right.params.length>0\">\r\n\t\t\t\t\t\t\t<div class=\"param-container\" \r\n\t\t\t\t\t\t\t\t*ngFor=\"let p of prod.right.params; let i=index\">\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t\t [style.width.ch]=\"prod.right.params[i].value.length + 4\" \r\n\t\t\t\t\t\t\t\t [(ngModel)]=\"prod.right.params[i].value\"\r\n\t\t\t\t\t\t\t\t required spellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\r\n\t\t\t\t\t\t\t\t<span *ngIf='i<prod.right.params.length-1'>,</span>\r\n\t\t\t\t\t\t\t</div> \r\n\t\t\t\t\t\t</span>\t)\r\n\t\t\t\t\t\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Loop Break' || prod.type == 'Loop Continue'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t {{prod.left.expression}}\r\n\t\t\t\t</div>\r\n\t\t\t</div> \r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Comment'\">\r\n\t\t\t\t<input matInput class=\"tree-input comment\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t</div>\r\n\r\n\t\t\t\t\r\n\t\t\t<!--button-->\r\n\t\t\t<div style=\"float: right;\" *ngIf='prod.id == active_procedure?.id'>\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t   \t\t(click)=\"prod.print = !prod.print\" \r\n\t\t\t   \t\tmatTooltip=\"Print value to console\"\r\n\t\t\t   \t\t*ngIf=\"prod.type =='Action' || prod.type =='Data'\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>print</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t\t\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t\t\t(click)=\"prod.enabled = !prod.enabled\" \r\n\t\t\t\t\tmatTooltip=\"Enable/Disable Line\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>check_circle</mat-icon>\r\n\t\t\t    </button>\r\n\r\n\t\t\t    <button class=\"btn--action\" matTooltip=\"Cut\" \r\n\t\t        \ttabindex=\"-1\"\r\n\t\t       \t\t(click)=\"cut($event)\">\r\n\t\t    \t\t<mat-icon>content_cut</mat-icon>\r\n\t\t\t    </button>\r\n\r\n\t\t\t    <button class=\"btn--action\" matTooltip=\"Copy\" \r\n\t\t        \ttabindex=\"-1\"\r\n\t\t       \t\t(click)=\"copy($event)\">\r\n\t\t    \t\t<mat-icon>content_copy</mat-icon>\r\n\t\t\t    </button>\r\n\r\n\t\t\t    <button class=\"btn--action\" matTooltip=\"Paste\" \r\n\t\t        \ttabindex=\"-1\"\r\n\t\t       \t\t(click)=\"paste($event)\">\r\n\t\t    \t\t<mat-icon>content_paste</mat-icon>\r\n\t\t\t    </button>\r\n\r\n\t\t\t   \t<button class=\"btn--action\" matTooltip=\"Delete Line\" \r\n\t\t        \ttabindex=\"-1\"\r\n\t\t       \t\t(click)=\"delete($event)\">\r\n\t\t    \t\t<mat-icon>delete</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t    \r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\r\n\t</div>\r\n\r\n\r\n\t<div class=\"children\" *ngIf=\"prod.children.length > 0 && prod.enabled\">\r\n\t\t<app-procedure-item \r\n\t\t\t*ngFor=\"let child of prod.children; trackBy: trackByFn\" \r\n\t\t\t[prod]=\"child\"\r\n\t\t\t[root]=\"root\"\r\n\t\t\t[active_procedure]=\"active_procedure\"\r\n\t\t\t[level]=\"level+1\"\r\n\t\t\t(action)=\"onAction($event)\">\r\n\t\t</app-procedure-item>\r\n\t</div>\r\n</div>"
+module.exports = "<div [class.selected] = \"prod.id == active_procedure?.id\"\r\n\t\t[class.print] = \"prod.print\"\r\n\t\t[class.error] = \"prod.error\"\r\n\t\t[class.disabled] = \"!prod.enabled\">\r\n\t<div class = \"full-container\" \r\n\t\t*ngIf='prod'>\r\n\t\t<!-- (mouseover)=\"_activeProcedure = prod\" -->\r\n\t\t<div class = \"seg1\" \r\n\t\t\t[class.print]=\"prod.print\"\r\n\t\t\t[class.error]=\"prod.error\" \r\n\t\t\t[class.disabled]=\"!prod.enabled\"\r\n\t\t\t(click)=\"onSelect($event)\">\r\n\r\n\t\t\t<!-- template for data -->\r\n\t\t\t<div *ngIf=\"prod.type == 'Data'\"> \r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\trequired spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" required spellcheck=\"false\" \r\n\t\t\t\t\tlist=\"variable-suggestions\">\r\n\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'If' || prod.type == 'ElseIf'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}} :::</span> \r\n\t\t\t\t <input matInput class=\"tree-input\" \r\n\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\"  \r\n\t\t\t\t\t[(ngModel)]=\"prod.left.expression\"\r\n\t\t\t\t\trequired spellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Else'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t <span>{{prod.type}}</span> \r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'For Loop'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>for each (</span> \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\r\n\t\t\t\t\t<span style=\"margin: 0px 10px;\">in</span>  \r\n\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" spellcheck=\"false\" list=\"variable-suggestions\"> \r\n\t\t\t\t\t)\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'While'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t<span>while :::</span> \r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.right.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.right.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Action'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\r\n\t\t\t\t\t<ng-container *ngIf='prod.hasReturn'>\r\n\t\t\t\t\t\r\n\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" required\r\n\t\t\t\t\t\tspellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\t\t\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"equal\">=</span>\r\n\r\n\t\t\t\t\t</ng-container>\r\n\t\t\t\r\n\t\t\t\t\t<span class=\"module\">{{prod.right.module.replace(\"_\",  \".\")}}</span>\r\n\t\t\t\t\t.\r\n\t\t\t\r\n\t\t\t\t\t  <span class=\"function\">{{prod.right.fn_name}}</span> \r\n\t\t\t\r\n\t\t\t\t\t( <span *ngIf=\"prod.right.params.length>0\">\r\n\t\t\t\t\t\t\t<div class=\"param-container\" \r\n\t\t\t\t\t\t\t\t*ngFor=\"let p of prod.right.params; let i=index\">\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t<input matInput class=\"tree-input\" \r\n\t\t\t\t\t\t\t\t [style.width.ch]=\"prod.right.params[i].value.length + 4\" \r\n\t\t\t\t\t\t\t\t [(ngModel)]=\"prod.right.params[i].value\"\r\n\t\t\t\t\t\t\t\t required spellcheck=\"false\" list=\"variable-suggestions\">\r\n\t\t\t\r\n\t\t\t\t\t\t\t\t<span *ngIf='i<prod.right.params.length-1'>,</span>\r\n\t\t\t\t\t\t\t</div> \r\n\t\t\t\t\t\t</span>\t)\r\n\t\t\t\t\t\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t\t\r\n\t\t\t<div *ngIf=\"prod.type == 'Loop Break' || prod.type == 'Loop Continue'\">\r\n\t\t\t\t<div class='procedure-item'>\r\n\t\t\t\t\t {{prod.left.expression}}\r\n\t\t\t\t</div>\r\n\t\t\t</div> \r\n\r\n\t\t\t<div *ngIf=\"prod.type == 'Comment'\">\r\n\t\t\t\t<input matInput class=\"tree-input comment\" \r\n\t\t\t\t\t\t[style.width.ch]=\"prod.left.expression?.length + 4\" \r\n\t\t\t\t\t\t[(ngModel)]=\"prod.left.expression\" \r\n\t\t\t\t\t\tspellcheck=\"false\">\r\n\t\t\t</div>\r\n\r\n\t\t\t\t\r\n\t\t\t<!--button-->\r\n\t\t\t<div style=\"float: right;\" *ngIf='prod.id == active_procedure?.id'>\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t   \t\t(click)=\"prod.print = !prod.print\" \r\n\t\t\t   \t\tmatTooltip=\"Print value to console\"\r\n\t\t\t   \t\t*ngIf=\"prod.type =='Action' || prod.type =='Data'\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>print</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t\t\r\n\t\t\t\t<button class=\"btn--action\"\r\n\t\t\t\t\t(click)=\"prod.enabled = !prod.enabled\" \r\n\t\t\t\t\tmatTooltip=\"Enable/Disable Line\" tabindex=\"-1\">\r\n\t\t    \t\t<mat-icon>check_circle</mat-icon>\r\n\t\t\t    </button>\r\n\r\n\t\t\t    <button class=\"btn--action\" matTooltip=\"Cut\" \r\n\t\t        \ttabindex=\"-1\"\r\n\t\t       \t\t(click)=\"cut($event)\">\r\n\t\t    \t\t<mat-icon>content_cut</mat-icon>\r\n\t\t\t    </button>\r\n\r\n\t\t\t    <button class=\"btn--action\" matTooltip=\"Copy\" \r\n\t\t        \ttabindex=\"-1\"\r\n\t\t       \t\t(click)=\"copy($event)\">\r\n\t\t    \t\t<mat-icon>content_copy</mat-icon>\r\n\t\t\t    </button>\r\n\r\n\t\t\t    <button class=\"btn--action\" matTooltip=\"Paste\" \r\n\t\t        \ttabindex=\"-1\"\r\n\t\t       \t\t(click)=\"paste($event)\">\r\n\t\t    \t\t<mat-icon>content_paste</mat-icon>\r\n\t\t\t    </button>\r\n\r\n\t\t\t   \t<button class=\"btn--action\" matTooltip=\"Delete Line\" \r\n\t\t        \ttabindex=\"-1\"\r\n\t\t       \t\t(click)=\"delete($event)\">\r\n\t\t    \t\t<mat-icon>delete</mat-icon>\r\n\t\t\t    </button>\r\n\t\t\t    \r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n\r\n\t</div>\r\n\r\n\r\n\t<div class=\"children\" *ngIf=\"prod.children.length > 0 && prod.enabled\">\r\n\t\t<app-procedure-item \r\n\t\t\t*ngFor=\"let child of prod.children; trackBy: trackByFn\" \r\n\t\t\t[prod]=\"child\"\r\n\t\t\t[root]=\"root\"\r\n\t\t\t[active_procedure]=\"active_procedure\"\r\n\t\t\t[level]=\"level+1\"\r\n\t\t\t(action)=\"onAction($event)\">\r\n\t\t</app-procedure-item>\r\n\t</div>\r\n</div>"
 
 /***/ }),
 
@@ -12880,7 +12905,7 @@ NodeLibraryComponent = __decorate([
 /***/ "./src/app/ui-components/viewers/parameter-viewer/parameter-viewer.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"viewer\" [class.globals-viewer]=\"globals\">\r\n\r\n\t<div class=\"container\" id=\"param-container-cesium\" #cesium_param_container>\r\n\r\n\t\t<div class=\"default\" \r\n\t\t\t*ngIf='!globals && !active_node'>\r\n\t\t\tNo node selected \r\n\t\t</div>\r\n \r\n \t\t<!-- Description in Mobius-Viewer-Mode-->\r\n\t\t<div class=\"param-in-viewer\" *ngIf=\"globals\">\r\n\t\t\t<h3 class=\"flo_title\">{{flowchartService.flowchart.name | simplename }}</h3>\r\n\t\t\t<div [innerHTML]=\"flowchartService.getFlowchart().description\"></div>\r\n\t\t\t<h4 *ngIf=\"_editable && _inputs.length\">Parameters</h4>\r\n\t\t</div>\r\n\r\n\t\t\r\n\t\t<div class=\"p-container\" *ngIf=\"active_node\">\r\n\t\t\t\r\n\t\t\t<div class='paramater-container single-param-container'\r\n\t\t\t\t *ngFor=\"let inp of active_node.inputs\" >\r\n\r\n\t\t\t\t<ng-container *ngIf='!inp.isConnected'>\r\n\r\n\t\t\t\t\t<div class=\"param-name\">{{ inp.name }}</div>\r\n\r\n\t\t\t\t\t<div class=\"param-value\" [ngSwitch]=\"inp.type\">\r\n\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\t<!-- if input type == Input -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.Input\">\r\n\t\t\t\t\t\t\t<form  class='content'>\r\n\t\t\t\t\t\t\t\t<mat-form-field>\r\n\t\t\t\t\t\t\t\t\t<textarea \r\n\t\t\t\t\t\t\t\t\t\tname=\"inp.name_{{inp.id}}\" \r\n\t\t\t\t\t\t\t\t\t\tmatInput \r\n\t\t\t\t\t\t\t\t\t\tmatTextareaAutosize \r\n\t\t\t\t\t\t\t\t\t\tmatAutosizeMinRows=\"1\"\r\n\t\t\t\t            \t\t\tmatAutosizeMaxRows=\"5\" \r\n\t\t\t\t            \t\t\t[(ngModel)]=\"inp.value\">\r\n\t\t\t\t            \t\t</textarea>\r\n\t\t\t\t\t\t\t\t</mat-form-field>\r\n\t\t\t\t\t\t\t</form>\r\n\t\t\t\t\t\t</div> \r\n\r\n\t\t\t\t\t\t<!-- if input type == Slider -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.Slider\">\r\n\r\n\t\t\t\t\t\t\t<mat-form-field class=\"curr-value\">\r\n\t\t\t\t\t\t\t\t<textarea matInput \r\n\t\t\t\t\t\t\t\t\tname=\"inp.name_{{inp.id}}\" \r\n\t\t\t\t\t\t\t\t\tmatTextareaAutosize \r\n\t\t\t\t\t\t\t\t\tmatAutosizeMinRows=\"1\"\r\n\t\t\t            \t\t\tmatAutosizeMaxRows=\"5\" \r\n\t\t\t            \t\t\t[(ngModel)]=\"inp.value\">\r\n\t\t\t            \t\t</textarea>\r\n\t\t\t\t\t\t\t</mat-form-field>\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class=\"slider-container\" *ngIf=\"el.nativeElement.offsetWidth > 200\">\r\n\t\t\t\t\t\t\t\t<span class='content'>{{inp.getOpts().min}}</span>\r\n\t\t\t\t\t\t\t\t<mat-slider min=\"{{inp.getOpts().min}}\" \r\n\t\t\t\t\t\t\t\t\t\t\tmax=\"{{inp.getOpts().max}}\" \r\n\t\t\t\t\t\t\t\t\t\t\tstep=\"{{inp.getOpts().step}}\" \r\n\t\t\t\t\t\t\t\t\t\t\t[thumb-label]=\"true\"\r\n\t\t\t\t\t\t\t\t\t\t\t[(ngModel)]=\"inp.value\"></mat-slider>\r\n\t\t\t\t\t\t\t\t<span class='content'>{{inp.getOpts().max}}</span>\r\n\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t<!-- if input type == FilePicker -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.FilePicker\" class=\"file-picker\">\r\n\t\t\t\t\t\t\t<input type=\"file\" id=\"file\" (change)=\"handleFileInput($event, inp)\">\r\n\t\t\t\t\t\t\t<span *ngIf='inp._hasDefault && !inp._hasComputed'>(has default)</span>\r\n\t\t\t\t\t\t\t<span *ngIf='inp._hasComputed'>(file loaded)</span>\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t<!-- if input type == URL -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.URL\">\r\n\t\t\t\t\t\t\t<small><input type=\"text\" value=\"{{inp.getOpts().url}}\" (change)=\"updateURL($event, inp)\"></small>\r\n\t\t\t\t\t\t\t<span *ngIf='inp._hasComputed'>(has data)</span>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t \r\n\t\t\t\t\t\t<!-- if input type == Checkbox -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.Checkbox\">\r\n\t\t\t\t\t\t\t\t<mat-checkbox name=\"inp.name_{{inp.id}}\" [(ngModel)]=\"inp.value\"></mat-checkbox>\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\r\n\t\t\t\t</ng-container>\r\n\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t\t\r\n\r\n\t\t<!-- Execute Button -->\r\n\t\t<button id=\"execute\" \r\n\t\t\t*ngIf=\"!globals || _editable\"\r\n\t\t\tmat-raised-button \r\n\t\t\tcolor=\"accent\" \r\n\t\t\t(click)=\"executeFlowchart($event)\">\r\n\t\t\t<span>Execute Flowchart</span>\r\n\t\t</button> \t\r\n\t\r\n\t</div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"viewer\" [class.globals-viewer]=\"globals\">\r\n\r\n\t<div class=\"container\" id=\"param-container-cesium\" #cesium_param_container>\r\n\r\n\t\t<div class=\"default\" \r\n\t\t\t*ngIf='!globals && !active_node'>\r\n\t\t\tNo node selected \r\n\t\t</div>\r\n \r\n \t\t<!-- Description in Mobius-Viewer-Mode-->\r\n\t\t<div class=\"param-in-viewer\" *ngIf=\"globals\">\r\n\t\t\t<h3 class=\"flo_title\">{{flowchartService.flowchart.name | simplename }}</h3>\r\n\t\t\t<div [innerHTML]=\"flowchartService.getFlowchart().description\"></div>\r\n\t\t\t<h4 *ngIf=\"_editable && _inputs.length\">Parameters</h4>\r\n\t\t</div>\r\n\r\n\t\t\r\n\t\t<div class=\"p-container\" *ngIf=\"active_node\">\r\n\t\t\t\r\n\t\t\t<div class='paramater-container single-param-container'\r\n\t\t\t\t *ngFor=\"let inp of active_node.inputs\" >\r\n\r\n\t\t\t\t<ng-container *ngIf='!inp.isConnected'>\r\n\r\n\t\t\t\t\t<div class=\"param-name\">{{ inp.name }}</div>\r\n\r\n\t\t\t\t\t<div class=\"param-value\" [ngSwitch]=\"inp.type\">\r\n\t\t\t\t\t\t\r\n\r\n\t\t\t\t\t\t<!-- if input type == Input -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.Input\">\r\n\t\t\t\t\t\t\t<form  class='content'>\r\n\t\t\t\t\t\t\t\t<mat-form-field>\r\n\t\t\t\t\t\t\t\t\t<textarea \r\n\t\t\t\t\t\t\t\t\t\tname=\"inp.name_{{inp.id}}\" \r\n\t\t\t\t\t\t\t\t\t\tmatInput \r\n\t\t\t\t\t\t\t\t\t\tmatTextareaAutosize \r\n\t\t\t\t\t\t\t\t\t\tmatAutosizeMinRows=\"1\"\r\n\t\t\t\t            \t\t\tmatAutosizeMaxRows=\"5\" \r\n\t\t\t\t            \t\t\t[(ngModel)]=\"inp.value\">\r\n\t\t\t\t            \t\t</textarea>\r\n\t\t\t\t\t\t\t\t</mat-form-field>\r\n\t\t\t\t\t\t\t</form>\r\n\t\t\t\t\t\t</div> \r\n\r\n\t\t\t\t\t\t<!-- if input type == Slider -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.Slider\">\r\n\r\n\t\t\t\t\t\t\t<mat-form-field class=\"curr-value\">\r\n\t\t\t\t\t\t\t\t<textarea matInput \r\n\t\t\t\t\t\t\t\t\tname=\"inp.name_{{inp.id}}\" \r\n\t\t\t\t\t\t\t\t\tmatTextareaAutosize \r\n\t\t\t\t\t\t\t\t\tmatAutosizeMinRows=\"1\"\r\n\t\t\t            \t\t\tmatAutosizeMaxRows=\"5\" \r\n\t\t\t            \t\t\t[(ngModel)]=\"inp.value\">\r\n\t\t\t            \t\t</textarea>\r\n\t\t\t\t\t\t\t</mat-form-field>\r\n\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t<div class=\"slider-container\" *ngIf=\"el.nativeElement.offsetWidth > 200\">\r\n\t\t\t\t\t\t\t\t<span class='content'>{{inp.opts.min}}</span>\r\n\t\t\t\t\t\t\t\t<mat-slider min=\"{{inp.opts.min}}\" \r\n\t\t\t\t\t\t\t\t\t\t\tmax=\"{{inp.opts.max}}\" \r\n\t\t\t\t\t\t\t\t\t\t\tstep=\"{{inp.opts.step}}\" \r\n\t\t\t\t\t\t\t\t\t\t\t[thumb-label]=\"true\"\r\n\t\t\t\t\t\t\t\t\t\t\t[(ngModel)]=\"inp.value\"></mat-slider>\r\n\t\t\t\t\t\t\t\t<span class='content'>{{inp.opts.max}}</span>\r\n\t\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t<!-- if input type == FilePicker -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.FilePicker\" class=\"file-picker\">\r\n\t\t\t\t\t\t\t<input type=\"file\" id=\"file\" (change)=\"handleFileInput($event, inp)\">\r\n\t\t\t\t\t\t\t<span *ngIf='inp._hasDefault && !inp._hasComputed'>(has default)</span>\r\n\t\t\t\t\t\t\t<span *ngIf='inp._hasComputed'>(file loaded)</span>\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t\t<!-- if input type == URL -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.URL\">\r\n\t\t\t\t\t\t\t<small><input type=\"text\" value=\"{{inp.opts.url}}\" [(ngModel)]=\"inp.opts.url\"></small>\r\n\t\t\t\t\t\t\t<span *ngIf='inp._hasComputed'>(has data)</span>\r\n\t\t\t\t\t\t</div>\r\n\t\t\t \r\n\t\t\t\t\t\t<!-- if input type == Checkbox -->\r\n\t\t\t\t\t\t<div *ngSwitchCase=\"InputPortTypes.Checkbox\">\r\n\t\t\t\t\t\t\t\t<mat-checkbox name=\"inp.name_{{inp.id}}\" [(ngModel)]=\"inp.value\"></mat-checkbox>\r\n\t\t\t\t\t\t</div>\r\n\r\n\t\t\t\t\t</div>\r\n\t\t\t\t\r\n\t\t\t\t</ng-container>\r\n\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t\t\r\n\r\n\t\t<!-- Execute Button -->\r\n\t\t<button id=\"execute\" \r\n\t\t\t*ngIf=\"!globals || _editable\"\r\n\t\t\tmat-raised-button \r\n\t\t\tcolor=\"accent\" \r\n\t\t\t(click)=\"executeFlowchart($event)\">\r\n\t\t\t<span>Execute Flowchart</span>\r\n\t\t</button> \t\r\n\t\r\n\t</div>\r\n</div>\r\n\r\n"
 
 /***/ }),
 
