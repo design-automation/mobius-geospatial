@@ -6,6 +6,8 @@ import { IGraphNode, IEdge } from "../../node/NodeModule";
 import { IProcedure, ProcedureTypes, IComponent } from "../../procedure/ProcedureModule";
 import { InputPort, OutputPort } from "../../port/PortModule";
 
+import { ConsoleService } from "../../../global-services/console.service";
+
 import * as ts from "typescript";
 
 export class CodeGeneratorJS extends CodeGenerator{
@@ -342,7 +344,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 					this.get_code_function_call(node, [], true) + "\n" + 
 					"return " + node.name + ";" 
 
-			console.log(`Generated Script: ${str}`);
+			//ConsoleService.log_to_db(`Generated Script: ${str}`);
 
 			let result: any;
 
@@ -351,7 +353,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 			}
 			catch(ex){
 
-				console.log(`Execution Error: ${ex}`)
+				ConsoleService.log_to_db(`Generated Script:<br> ${str} <br><br>Execution Error: <br>${ex}`)
 				node.hasError = true;
 
 				let prodWithError: number = prodArr;

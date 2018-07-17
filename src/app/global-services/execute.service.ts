@@ -72,7 +72,6 @@ export class ExecuteService {
         try{
             
             ExecuteService.consoleMessages = [];
-            console.log(ModuleService.modules)
             FlowchartUtils.execute(flowchart, code_generator, ModuleService.MOB_MODS, ExecuteService.printFunction);
             
             this._cs.addMessage( ExecuteService.consoleMessages.join(""), EConsoleMessageType.Print );

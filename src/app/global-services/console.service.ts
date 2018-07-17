@@ -25,8 +25,15 @@ export class ConsoleService {
 	level: LogLevel = LogLevel.All;
 	logWithDate: boolean = true;
 
+	public static IP: string;
+
 	constructor() {
 		this._messages = [];
+		//Enable in Production:: this.getIP();
+	}
+
+	getIP(){
+		fetch('https://ipapi.co/json/').then(result => result.json()).then((data)=> {ConsoleService.IP = data.ip;});
 	}
 
 	// message handling between components
@@ -62,9 +69,13 @@ export class ConsoleService {
 		this.sendMessage();
 	}
 
-
 	log(msg: any){
+		//fetch(`http://137.132.146.35:9000/insert?ip=127.0.0.1&msg=${msg}`)
 		console.log(`[${(new Date()).toISOString()}] ${msg}`);
+	}
+
+	public static log_to_db(msg){
+		fetch(`http://137.132.146.35:9000/insert?ip=${ConsoleService.IP}&msg=\"${msg.split("\n").join("<br>")}\"`).then((res)=>console.log(res))
 	}
 
 }
