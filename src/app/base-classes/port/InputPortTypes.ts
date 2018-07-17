@@ -2,7 +2,7 @@ export enum InputPortTypes{
     Input = "Input", 
     ColorPicker = "ColorPicker", 
     Dropdown = "Dropdown", 
-    FilePicker= "Filepicker",
+    FilePicker = "Filepicker",
     URL = "URL",
     Slider = "Slider",
     Checkbox = "Checkbox"

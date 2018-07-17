@@ -40,7 +40,7 @@
 									    name={{inp.name}}_type
 									    [(ngModel)]="inp.type">
 						         	    <option *ngFor="let x of inputPortOpts" [value]="x" [selected]="inp.type == x">
-						         	    	{{ x | port_type_name }}
+						         	    	{{x}}
 						         	    </option>
 						            </select>
 								</span>
@@ -49,7 +49,8 @@
 						</div>			
 
 						<div class="controls">
-							<button mat-button (click)='openSettingsDialog(inp)' tabindex="-1">
+							<button mat-button *ngIf='inp.type == "Slider"'  
+								(click)='openSettingsDialog(inp)' tabindex="-1">
 								<mat-icon>settings</mat-icon>
 							</button>
 					        <button mat-button (click)='delete_port($event, inp)' tabindex="-1">

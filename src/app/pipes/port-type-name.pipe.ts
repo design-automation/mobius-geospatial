@@ -17,6 +17,7 @@ export class PortTypePipe implements PipeTransform {
 
   private getInputTypeName(type: InputPortTypes): string{
       let str_rep = undefined;
+      alert(type);
       switch(type){
         case InputPortTypes.ColorPicker:
           str_rep = "Color"
@@ -34,7 +35,7 @@ export class PortTypePipe implements PipeTransform {
           str_rep = "Slider"
           break;
         case InputPortTypes.URL:
-          str_rep = "WebURL"
+          str_rep = "URL"
           break;
         case InputPortTypes.Checkbox:
           str_rep = "Checkbox"
