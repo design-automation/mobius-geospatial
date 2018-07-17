@@ -47,8 +47,6 @@ export abstract class FlowchartReader{
 	    	}
 	    }
 
-		console.log("recreated fc: ", fc);
-
 	    return fc;
 	}
 

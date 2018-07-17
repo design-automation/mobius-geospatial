@@ -14,8 +14,7 @@ export interface IPort{
 	enabled: boolean;
 	isConnected: boolean;
 
-	setOpts(opts: any);
-	getOpts(opts: any);
+	opts;
 
 	isSelected(): boolean;
 

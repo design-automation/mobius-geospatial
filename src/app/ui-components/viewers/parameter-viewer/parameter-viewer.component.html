@@ -57,13 +57,13 @@
 							</mat-form-field>
 							
 							<div class="slider-container" *ngIf="el.nativeElement.offsetWidth > 200">
-								<span class='content'>{{inp.getOpts().min}}</span>
-								<mat-slider min="{{inp.getOpts().min}}" 
-											max="{{inp.getOpts().max}}" 
-											step="{{inp.getOpts().step}}" 
+								<span class='content'>{{inp.opts.min}}</span>
+								<mat-slider min="{{inp.opts.min}}" 
+											max="{{inp.opts.max}}" 
+											step="{{inp.opts.step}}" 
 											[thumb-label]="true"
 											[(ngModel)]="inp.value"></mat-slider>
-								<span class='content'>{{inp.getOpts().max}}</span>
+								<span class='content'>{{inp.opts.max}}</span>
 							</div>
 
 						</div>
@@ -77,7 +77,7 @@
 
 						<!-- if input type == URL -->
 						<div *ngSwitchCase="InputPortTypes.URL">
-							<small><input type="text" value="{{inp.getOpts().url}}" (change)="updateURL($event, inp)"></small>
+							<small><input type="text" value="{{inp.opts.url}}" [(ngModel)]="inp.opts.url"></small>
 							<span *ngIf='inp._hasComputed'>(has data)</span>
 						</div>
 			 

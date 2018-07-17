@@ -8,7 +8,7 @@ export abstract class Port implements IPort{
 
 	private _id: string;
 	protected _type: InputPortTypes|OutputPortTypes;
-	protected opts;
+	protected _opts;
 
 	private _selected: boolean = false;
 	private _disabled: boolean = false;
@@ -27,7 +27,7 @@ export abstract class Port implements IPort{
 	constructor(name: string){ 
 		this._id =  IdGenerator.getId();
 		this._name = name;
-		this.opts = {};
+		this._opts = {};
 	}
 
 	// ----- Update function for Port from Data 
@@ -43,12 +43,16 @@ export abstract class Port implements IPort{
 			//this._type = <OutputPortTypes>Object.keys(OutputPortTypes)[this._type]
 		}
 
+		// will be programmatically selected later 
 		this._selected = false;
+
+		// will be programmatically connected later
 		this._connected = false;
 		
 		this._disabled = portData["_disabled"];
 		this._default = portData["_default"];
-		this.opts = portData["opts"];
+		this._opts = portData["_opts"];
+
 
 		// todo: assign computed also??
 		//this._computed = portData["_computed"];
@@ -78,7 +82,7 @@ export abstract class Port implements IPort{
 		this._type = value;
 	
 		if(value == InputPortTypes.Slider){
-          this.setOpts({min: 0, max: 100, step: 1});
+          this.opts = {min: 0, max: 100, step: 1};
           this.setDefaultValue(50);
         }
 	}
@@ -90,6 +94,14 @@ export abstract class Port implements IPort{
 	set value(value: any){
 		console.log(`Setting value of Port: ${this.name} as ${value}`);
 		this.setComputedValue(value);
+	}
+
+	get opts(): any{
+		return this._opts;
+	}
+
+	set opts(value: any){
+		this._opts = value;
 	}
 
 
@@ -157,14 +169,7 @@ export abstract class Port implements IPort{
 
 	// ---- Getters and Settings
 	// TODO: Convert to get/set methods
-	setOpts(opts: any): void{
-		
-	}
 
-	getOpts(): void{
-		throw Error("not defined");
-	}
-	
 	isSelected(): boolean{
 		return this._selected; 
 	}

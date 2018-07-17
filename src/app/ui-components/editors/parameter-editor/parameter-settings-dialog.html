@@ -1,5 +1,16 @@
-<h2>Input Name: {{input.getName()}}</h2>
-<h3>Input Type: {{input.getType()}}</h3>
+<h2>Input Name: {{input.name}}</h2>
+<h3>Input Type: {{input.type}}</h3>
+
+<div *ngIf='type == inputPortTypes.Slider'>
+	<form class="example-form" style="display: flex; flex-direction: column;">
+	  <input placeholder="Minimum Value" [(ngModel)]="input.opts.min" value="{{ input.opts.min }}" name='{{input.id}}#min'>
+	  <input placeholder="Maximum Value" [(ngModel)]="input.opts.max" value="{{ input.opts.max }}"  name='{{input.id}}#max'>
+      <input placeholder="Step" [(ngModel)]="input.opts.step"  value="{{ input.opts.step }}"  name='{{input.id}}#step'>
+	</form>
+</div>
+
+
+<ng-container *ngIf='false'>
 
 <div *ngIf='type == inputPortTypes.Input'>
 
@@ -15,48 +26,9 @@
 		</textarea>
 	  </mat-form-field>
 	</form>
-	
 </div>
-
-<div *ngIf='type == inputPortTypes.Slider'>
-	<form class="example-form"
-			style="display: flex; flex-direction: column;">
-		  <mat-form-field class="example-full-width" style="height: 45px;">
-		    <input matInput placeholder="Minimum Value" 
-		    	(change)="updateSliderOpts($event, 'min')" 
-		    	value="{{ opts.min }}">
-		    <!-- <mat-hint>Enter the minimum slider value</mat-hint> -->
-		  </mat-form-field>
-
-		  <mat-form-field class="example-full-width"  style="height: 45px;">
-		    <input matInput placeholder="Maximum Value" 
-		    	(change)="updateSliderOpts($event, 'max')" 
-		    	value="{{ opts.max }}">
-		  	<!-- <mat-hint>Enter the maximum slider value</mat-hint> -->
-		  </mat-form-field>
-
-		  <mat-form-field class="example-full-width"  style="height: 45px;">
-		    <input matInput placeholder="Step" 
-		    	(change)="updateSliderOpts($event, 'step')" 
-		    	value="{{ opts.step }}">
-		  	<!-- <mat-hint>Enter the step size value</mat-hint> -->
-		  </mat-form-field>
-
-		  <mat-form-field class="example-full-width"  style="height: 45px;">
-		    <input matInput placeholder="Default Value" 
-		    (change)="updateDefaultValue($event, input)" 
-		    value="{{ default(input) }}">
-		  	<!-- <mat-hint>Enter the default value</mat-hint> -->
-		  </mat-form-field>
-
-
-
-	</form>
-</div>
-
 
 <div *ngIf='type == inputPortTypes.FilePicker'>
-	<!-- if input type == FilePicker -->
 	<div class="value">
 		<input type="file" id="file" (change)="handleFileInput($event.target.files, input)">
 		<br><br>
@@ -68,25 +40,10 @@
 </div>
 
 <div *ngIf='type == inputPortTypes.URL'>
-	<!-- if input type == FilePicker -->
-	<!-- <div class="value">
-		http://<input type="text" [(ngModel)]="url">
-		<button (click)="handleURL($event, input)">Get Data</button>
-		<button *ngIf="input.getDefaultValue()" (click)="clear($event, input)">Clear</button>
-		<br><br>
-		<div *ngIf="input.getDefaultValue()">
-			<h3>Default File:</h3>
-
-			<p>Loaded file!</p>
-		</div>
-	</div> -->
 	URL:
 	<small><input type="text" value="{{input.getOpts().url}}" (change)="updateURL($event, input)" #url></small>
-	<!-- <button (click)="getDataFromURL($event, input)">Get Data</button> -->
 </div>
 
-
-<!-- checkbox -->
 <div *ngIf='type == inputPortTypes.Checkbox'>
 	<div>
 		<mat-checkbox #val 
@@ -95,18 +52,4 @@
 	</div>
 </div>
 
-
-<!-- <div *ngIf='type == inputPortTypes.File'>
-	Sunt dolor in officia veniam id tempor occaecat sint ea exercitation ut aliqua esse eu laborum elit commodo ea amet magna id consequat dolor occaecat esse id tempor labore nulla nisi velit mollit voluptate.
-</div>
-
-<div *ngIf='type == inputPortTypes.Input'>
-	Sunt dolor in officia veniam id tempor occaecat sint ea exercitation ut aliqua esse eu laborum elit commodo ea amet magna id consequat dolor occaecat esse id tempor labore nulla nisi velit mollit voluptate.
-</div> -->
-<!-- 
-<div class="options" style="width: 100%" *ngIf='inp.getType() == inputPortOpts[1]'>
-	Min: <input/><br>
-	Max: <input/><br>
-	Step: <input/><br>
-	value: <input/><br>
-</div> -->
+</ng-container>

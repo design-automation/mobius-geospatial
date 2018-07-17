@@ -262,7 +262,7 @@ export abstract class NodeUtils{
 				///
 
 				live_data_downloads++;
-				let urlString: any = i.getOpts().url;
+				let urlString: any = i.opts.url;
 				fetch(urlString)
 				.then((res) => res.text())
 				.then((out) => {

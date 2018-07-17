@@ -22,14 +22,13 @@ export class InputPort extends Port{
 		}
 	}
 
-	setOpts(opts: any){
-		this.opts = opts;
 
-		//todo: check if options valid for type
-	}
+	update(portData: IPort, type?: string): void{
+		super.update(portData, type);
 
-	getOpts(): any{
-		return this.opts;
+		if( !(this._type === InputPortTypes.FilePicker || this._type === InputPortTypes.URL) && !portData['_connected'] ){
+			this.value = portData["_computed"];
+		}
 	}
 
 }

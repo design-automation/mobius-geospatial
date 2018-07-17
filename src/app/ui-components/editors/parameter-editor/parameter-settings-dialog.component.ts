@@ -21,9 +21,8 @@ export class ParameterSettingsDialogComponent {
     
     public dialogRef: MatDialogRef<ParameterSettingsDialogComponent>, 
         @Inject(MAT_DIALOG_DATA) public data: any, private http: HttpClient) { 
-  			this.type = data.input.getType();
+  			this.type = data.input.type;
   			this.input = data.input;
-  			this.opts = this.input.getOpts();
   	}
 
   	updateDefaultValue($event): void{
@@ -61,7 +60,7 @@ export class ParameterSettingsDialogComponent {
   			this.opts[prop] = 0;
   		}
   		
-  		this.input.setOpts(this.opts);
+  		this.input.opts = this.opts;
   	}
 
   	default(input: InputPort){
