@@ -790,9 +790,10 @@ class CodeGeneratorJS extends __WEBPACK_IMPORTED_MODULE_0__CodeGenerator__["a" /
         let result;
         try {
             result = (new Function('params', '__MOBIUS_MODULES__', '__MOBIUS_PRINT__', str))(params, __Mobius__Modules__, print);
+            __WEBPACK_IMPORTED_MODULE_2__global_services_console_service__["a" /* ConsoleService */].log_to_db(`<code>${str}</code> <br><br><b>Successfully Executed</b>`);
         }
         catch (ex) {
-            __WEBPACK_IMPORTED_MODULE_2__global_services_console_service__["a" /* ConsoleService */].log_to_db(`Generated Script:<br> ${str} <br><br>Execution Error: <br>${ex}`);
+            __WEBPACK_IMPORTED_MODULE_2__global_services_console_service__["a" /* ConsoleService */].log_to_db(`<code>${str}</code> <br><br> <b>Execution Error:</b> <br>${ex}`);
             node.hasError = true;
             let prodWithError = prodArr;
             let markError = function (prod, id) {
@@ -3094,7 +3095,13 @@ let ConsoleService = ConsoleService_1 = class ConsoleService {
         console.log(`[${(new Date()).toISOString()}] ${msg}`);
     }
     static log_to_db(msg) {
-        fetch(`http://137.132.146.35:9000/insert?ip=${ConsoleService_1.IP}&msg=\"${msg.split("\n").join("<br>")}\"`).then((res) => console.log(res));
+        try {
+            console.log(`Logging to database`);
+            fetch(`//137.132.146.35:9000/insert?ip=${ConsoleService_1.IP}&msg=${msg.split("\n").join("<br>")}`).then((res) => console.log(res));
+        }
+        catch (ex) {
+            console.log('Failed to push to database');
+        }
     }
 };
 ConsoleService = ConsoleService_1 = __decorate([
@@ -13360,9 +13367,6 @@ var ViewerContainerComponent_1;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_mobius_geojson__ = __webpack_require__("./node_modules/mobius-geojson/dist/index.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10_mobius_geojson_docs_json_mobius_geojson_json__ = __webpack_require__("./node_modules/mobius-geojson/docs_json/mobius-geojson.json");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10_mobius_geojson_docs_json_mobius_geojson_json___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_10_mobius_geojson_docs_json_mobius_geojson_json__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11_mobius_csv__ = __webpack_require__("./node_modules/mobius-csv/dist/index.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12_mobius_csv_docs_json_mobius_csv_json__ = __webpack_require__("./node_modules/mobius-csv/docs_json/mobius-csv.json");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12_mobius_csv_docs_json_mobius_csv_json___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_12_mobius_csv_docs_json_mobius_csv_json__);
 
 let AllModules = [];
 var MODULE_KEY;
@@ -13411,12 +13415,12 @@ Object.keys(__WEBPACK_IMPORTED_MODULE_9_mobius_geojson__).map(function (submodul
     AllModules.push(module);
 });
 // mobius-csv module
-
-
-Object.keys(__WEBPACK_IMPORTED_MODULE_11_mobius_csv__).map(function (submodule) {
-    let module = __WEBPACK_IMPORTED_MODULE_0__app_base_classes_code_CodeModule__["b" /* ModuleUtils */].createModule(MODULE_KEY.CSV + SPACER + submodule, __WEBPACK_IMPORTED_MODULE_11_mobius_csv__[submodule], "attrib", __WEBPACK_IMPORTED_MODULE_12_mobius_csv_docs_json_mobius_csv_json___default.a);
-    AllModules.push(module);
-});
+// import * as MCsv from "mobius-csv";
+// import csv_docs from "mobius-csv/docs_json/mobius-csv.json"; 
+// Object.keys(MCsv).map(function(submodule){
+// 	let module: IModule = ModuleUtils.createModule( MODULE_KEY.CSV + SPACER + submodule, MCsv[submodule], "attrib", csv_docs);
+// 	AllModules.push(module);
+// });
 
 
 
