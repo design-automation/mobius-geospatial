@@ -437,22 +437,30 @@ class ModuleUtils {
     }
     static hasReturn(func) {
         const str = func.toString();
-        const regex = /return (\S+);/gm;
+        const regex = /return(.*);/gm;
         let m;
+        let flag = false;
         while ((m = regex.exec(str)) !== null) {
             // This is necessary to avoid infinite loops with zero-width matches
             if (m.index === regex.lastIndex) {
                 regex.lastIndex++;
             }
-            // The result can be accessed through the `m`-variable.
-            m.forEach((match, groupIndex) => {
-                if (groupIndex == 1 && match != 'void') {
+            if (!(m[1].length == 0)) {
+                flag = true;
+                break;
+            }
+            /*for(let en of m){
+                let match = en[0];
+                let groupIndex = en[1];
+                console.log(en, match, groupIndex);
+                if(groupIndex == 1 && match != ''){
                     //console.log(`Found match, group ${groupIndex}: ${match}`);
-                    return false;
+                    flag = true;
+                    break;
                 }
-            });
+            }*/
         }
-        return true;
+        return flag;
     }
     static getParams(func) {
         let fnStr = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
@@ -13452,13 +13460,6 @@ Object(__WEBPACK_IMPORTED_MODULE_1__angular_platform_browser_dynamic__["a" /* pl
 
 module.exports = __webpack_require__("./src/main.ts");
 
-
-/***/ }),
-
-/***/ 1:
-/***/ (function(module, exports) {
-
-/* (ignored) */
 
 /***/ })
 
