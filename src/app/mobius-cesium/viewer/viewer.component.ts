@@ -34,51 +34,20 @@ export class ViewerComponent extends DataSubscriber {
 
   public ngOnInit() {
     this.mode = this.dataService.getmode();
-    if(this.mode === "editor") {
-      this.dataService.getValue(this.data);
-      this.dataService.LoadJSONData();
-      this.dataArr = this.dataService.get_ViData();
-      this._index = 1;
+    if(this.dataService.getViewer() === undefined){
+      this.CreateViewer();
     }
-    if(this.mode === "viewer") {
-      this.dataService.LoadJSONData();
-      this.dataArr = this.dataService.get_PuData();
-      this._index = 3;
-    }
-    const viewer = new Cesium.Viewer("cesiumContainer" , {
-      infoBox: false,
-      showRenderLoopErrors: false,
-      orderIndependentTranslucency: false,
-      baseLayerPicker: false,
-      //timeline: false,
-      fullscreenButton:false,
-      // automaticallyTrackDataSourceClocks:false,
-      animation:false,
-      shadows:true,
-      terrainShadows: Cesium.ShadowMode.ENABLED
-    });
-    //viewer.scene.globe.depthTestAgainstTerrain = true;
-    //viewer.scene.globe.castShadows = true;
-    viewer.scene.globe.enableLighting =  true;
-    viewer.scene.imageryLayers.removeAll();
-    viewer.scene.globe.baseColor = Cesium.Color.GRAY;
-    /*viewer.scene.primitives.add(new Cesium.Primitive({
-      shadows : Cesium.ShadowMode.ENABLED,
-      appearance : new Cesium.PerInstanceColorAppearance({
-      translucent : false
-      })
-    }));*/
-    //viewer.clock.currentTime = new Cesium.JulianDate(location.date);
-    //viewer.clock.currentTime = new Cesium.JulianDate.now();
-    document.getElementsByClassName("cesium-viewer-bottom")[0].remove();
-    this.dataService.setViewer(viewer);
+    this.data = this.dataService.getGsModel();
+    this.LoadData(this.data);
   }
 
   public notify(message: string): void {
     if(message === "model_update" ) {
-
       this.data = this.dataService.getGsModel();
       try {
+        if(this.dataService.getViewer() === undefined){
+          this.CreateViewer();
+        }
         this.LoadData(this.data);
       }
       catch(ex) {
@@ -86,13 +55,34 @@ export class ViewerComponent extends DataSubscriber {
       }
     }
   }
+   public CreateViewer(){
+    const viewer = new Cesium.Viewer("cesiumContainer" , {
+      infoBox: false,
+      showRenderLoopErrors: false,
+      orderIndependentTranslucency: false,
+      baseLayerPicker: false,
+      fullscreenButton:false,
+      automaticallyTrackDataSourceClocks:false,
+      animation:false,
+      shadows:true,
+      scene3DOnly:true,
+      //terrainShadows: Cesium.ShadowMode.ENABLED
+    });
+    viewer.scene.imageryLayers.removeAll();
+    viewer.scene.globe.baseColor = Cesium.Color.GRAY;
+    document.getElementsByClassName("cesium-viewer-bottom")[0].remove();
+    const self = this;
+    viewer.homeButton.viewModel.command.beforeExecute.addEventListener(function(e) {
+        e.cancel = true;
+        viewer.zoomTo(self.dataService.getcesiumpromise());
+    });
+    this.dataService.setViewer(viewer);
+  }
 
   public LoadData(data: JSON) {
     if(this.data !== undefined) {
       const viewer = this.dataService.getViewer();
-      viewer.dataSources.removeAll(); 
-      //viewer.scene.primitives.remove(this.dataService.getcesiumpromise());
-      //const new_viewer = new Cesium.Viewer("cesiumContainer");
+      viewer.dataSources.removeAll({destroy:true}); 
 
       this.data = data;
       const promise = Cesium.GeoJsonDataSource.load(this.data);
@@ -117,10 +107,6 @@ export class ViewerComponent extends DataSubscriber {
         this.dataArr = this.dataService.get_PuData();
         this._index = 3;
       }
-      viewer.homeButton.viewModel.command.beforeExecute.addEventListener(function(e) {
-        e.cancel = true;
-        viewer.zoomTo(promise);
-      });
       viewer.zoomTo(promise);
       this.Colortext();
     }
@@ -256,7 +242,7 @@ export class ViewerComponent extends DataSubscriber {
           if(typeof(_ColorText[0]) === "number") {
             this.colorByNum(entity,_ColorMax,_ColorMin,_ColorKey,_ChromaScale);
           } else {this.colorByCat(entity,_ColorText,_ColorKey,_ChromaScale);}
-        } else {entity.polygon.material = Cesium.Color.GOLD.withAlpha(0.8);}
+        } else {entity.polygon.material = Cesium.Color.DARKGREY;}
       }
     }else {
       entity.polygon.height =  entity.properties["HEIGHT"];
@@ -312,6 +298,9 @@ export class ViewerComponent extends DataSubscriber {
       const rgb = _ChromaScale(Number(((max-texts)/(max-min)).toFixed(2)))._rgb;
       if(entity.polygon !== undefined) {entity.polygon.material = Cesium.Color.fromBytes(rgb[0],rgb[1],rgb[2]);}
       if(entity.polyline !== undefined) {entity.polyline.material = Cesium.Color.fromBytes(rgb[0],rgb[1],rgb[2]);}
+    }else{
+      if(entity.polygon !== undefined) {entity.polygon.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);}
+      if(entity.polyline !== undefined) {entity.polyline.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);}
     }
   }
 
@@ -328,6 +317,9 @@ export class ViewerComponent extends DataSubscriber {
       if(initial === false) {
         entity.polygon.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);
       }
+    }else{
+      if(entity.polygon !== undefined) {entity.polygon.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);}
+      if(entity.polyline !== undefined) {entity.polyline.material = Cesium.Color.LIGHTSLATEGRAY.withAlpha(1);}
     }
   }
 

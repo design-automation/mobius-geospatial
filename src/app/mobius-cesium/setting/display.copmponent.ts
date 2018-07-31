@@ -15,18 +15,47 @@ export class DisplayComponent extends DataSubscriber implements OnInit {
   private mode: string;
   private _ImageryList: any[];
   private _Imagery: string;
+  private _Sun: boolean;
+  private _Shadow: boolean;
+  private _Date: string;
+  private _UTC: number;
 
   constructor(injector: Injector, myElement: ElementRef) {
   super(injector);
   }
   public ngOnInit() {
     this.data = this.dataService.getGsModel();
-    this._ImageryList = ["Display","Stamen Toner","Stamen Toner(Lite)","Terrain(Standard)","Terrain(Background)",
+    this._ImageryList = ["Disable","Stamen Toner","Stamen Toner(Lite)","Terrain(Standard)","Terrain(Background)",
                          "OpenStreetMap","Earth at Night","Natural Earth\u00a0II","Blue Marble"];
-    if(this._Imagery === undefined){
-      this._Imagery = this._ImageryList[0];
-    }else {this._Imagery =this.dataService.get_Imagery();}
     
+    if(this._Imagery === undefined){
+      this._Imagery = this._ImageryList[3];
+      this.onChangeImagery(this._Imagery);
+    }else {this._Imagery =this.dataService.get_Imagery();}
+
+    if(this._Sun === undefined){
+      this._Sun = false;
+      this.dataService.set_Sun(this._Sun);
+    }else {this._Sun =this.dataService.get_Sun();}
+
+    if(this._Shadow === undefined){
+      this._Shadow = false;
+      this.dataService.set_Shadow(this._Shadow);
+    }else {this._Shadow =this.dataService.get_Shadow();}
+
+    this._UTC = +8;
+    this.dataService.set_UTC(this._UTC);
+    if(this._Date ===undefined){
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth()+1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      this._Date = year+"-"+month+"-"+day;
+    }else {
+      this._Date = this.dataService.get_Date();
+      this.changeDate(this._Date,this._UTC);
+    }
+        this.dataService.set_Date(this._Date);
   }
   public  notify(message: string): void {
   }
@@ -65,7 +94,6 @@ export class DisplayComponent extends DataSubscriber implements OnInit {
     }else if(_Imagery === this._ImageryList[6]){
       layers.removeAll();
       var blackMarble = layers.addImageryProvider(new Cesium.IonImageryProvider({ assetId: 3812 }));
-      //blackMarble.alpha = 0.5; 
     }else if(_Imagery === this._ImageryList[7]){
       layers.removeAll();
       var blackMarble = layers.addImageryProvider(Cesium.createTileMapServiceImageryProvider({
@@ -76,5 +104,83 @@ export class DisplayComponent extends DataSubscriber implements OnInit {
       var blackMarble = layers.addImageryProvider(new Cesium.IonImageryProvider({ assetId: 3845 }));
     }
   }
+  public changeSun(){
+    const viewer = this.dataService.getViewer();
+    this._Sun = ! this._Sun;
+    if(this._Sun === true){
+      viewer.terrainShadows = Cesium.ShadowMode.ENABLED;
+      viewer.scene.globe.enableLighting =  true;
+      viewer.scene.sun.show = true;
+    } else {
+      viewer.terrainShadows = undefined;
+      viewer.scene.globe.enableLighting =  false;
+      viewer.scene.sun.show = false;
+    }
+    this.dataService.set_Sun(this._Sun);
+  }
+  public changeShadow(){
+    this._Shadow = ! this._Shadow;
+    const promise = this.dataService.getcesiumpromise();
+    if(this._Shadow === true){
+      promise.then(function(dataSource) {
+        const entities = dataSource.entities.values;
+        for(const entity of entities) {
+          entity.polygon.shadows = Cesium.ShadowMode.ENABLED;
+        }
+      });
+    } else {
+      promise.then(function(dataSource) {
+        const entities = dataSource.entities.values;
+        for(const entity of entities) {
+          entity.polygon.shadows = undefined;
+        }
+      });
+    }
+    this.dataService.set_Shadow(this._Shadow);
+  }
+  public changeDate(_Date,_UTC){
+    this._Date = _Date;
+    this._UTC = _UTC;
+    const viewer = this.dataService.getViewer();
+    const now = new Cesium.JulianDate.fromIso8601(this._Date);
+    const tomorrow = now.clone();
+    tomorrow.dayNumber = tomorrow.dayNumber + 1;
+    viewer.clock.currentTime = Cesium.JulianDate.addHours(now,this._UTC,now);
+    viewer.clock.startTime = now.clone();
+    viewer.clock.stopTime = tomorrow.clone();
+    viewer.timeline.zoomTo(viewer.clock.startTime, viewer.clock.stopTime);
+    this.dataService.set_Date(this._Date);
+    this.dataService.set_UTC(this._UTC);
+    viewer.timeline.updateFromClock();
+    /*viewer.animation.viewModel.dateFormatter = this.localeDateTimeFormatter
+    viewer.animation.viewModel.timeFormatter = this.localeTimeFormatter
+    //console.log(viewer.animation.viewModel.timeFormatter)
+    viewer.timeline.makeLabel = function (time) { return this.localeDateTimeFormatter(time) }*/
+
+  }
+  // Date formatting to a global form
+  /*localeDateTimeFormatter(datetime, viewModel, ignoredate) {
+    var julianDT = new Cesium.JulianDate(); 
+    Cesium.JulianDate.addHours(datetime,8,julianDT)
+    var gregorianDT= Cesium.JulianDate.toGregorianDate(julianDT)
+    var objDT;
+    if (ignoredate)
+        objDT = '';
+    else {
+        objDT = new Date(gregorianDT.year, gregorianDT.month - 1, gregorianDT.day);
+        objDT = String(objDT).substr(4).slice(0, -44);
+        //console.log(objDT)
+        //objDT = gregorianDT.year  + '年' +objDT.toLocaleString("zh-cn", { month: "short" })+ gregorianDT.day + '日' ;
+        //objDT = objDT.toLocaleString({ month: "short" }) + gregorianDT.day +gregorianDT.year;
+        
+        if (viewModel || gregorianDT.hour + gregorianDT.minute === 0)
+        return objDT;
+        objDT += ' ';
+    }
+    return objDT + Cesium.sprintf("%02d:%02d:%02d", gregorianDT.hour, gregorianDT.minute, gregorianDT.second);
+  }
+  localeTimeFormatter(time, viewModel) {
+    //return this.localeDateTimeFormatter(time, viewModel, true);
+  }*/
 
 }
