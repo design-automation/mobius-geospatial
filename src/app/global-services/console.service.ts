@@ -48,7 +48,7 @@ export class ConsoleService {
 	}
 
 	getMessage(): Observable<any> {
-	  return this.subject.asObservable();
+	  return this.subject.asObservable(); 	
 	}
 
 	addMessage(message: string, type: EConsoleMessageType = EConsoleMessageType.General): void{
@@ -75,7 +75,13 @@ export class ConsoleService {
 	}
 
 	public static log_to_db(msg){
-		fetch(`http://137.132.146.35:9000/insert?ip=${ConsoleService.IP}&msg=\"${msg.split("\n").join("<br>")}\"`).then((res)=>console.log(res))
+		try{
+			console.log(`Logging to database`);
+			//fetch(`//137.132.146.35:9000/insert?ip=${ConsoleService.IP}&msg=${msg.split("\n").join("<br>")}`).then((res)=>console.log(res))
+		}
+		catch(ex){
+			console.log('Failed to push to database');
+		}
 	}
 
 }

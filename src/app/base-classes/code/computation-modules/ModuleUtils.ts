@@ -91,24 +91,33 @@ export class ModuleUtils{
 
 	static hasReturn(func: Function): boolean{
 		const str = func.toString();
-		const regex = /return (\S+);/gm;
+		const regex = /return(.*);/gm;
 		let m;
+		let flag = false;
 		while ((m = regex.exec(str)) !== null) {
 		    // This is necessary to avoid infinite loops with zero-width matches
 		    if (m.index === regex.lastIndex) {
 		        regex.lastIndex++;
+		    }	
+
+		    if(!(m[1].length == 0)){	
+		    	flag = true;
+		    	break;
 		    }
-		    
-		    // The result can be accessed through the `m`-variable.
-		    m.forEach((match, groupIndex) => {
-		    	if(groupIndex == 1 && match != 'void'){
+
+		    /*for(let en of m){
+		    	let match = en[0]; 
+		    	let groupIndex = en[1];
+		    	console.log(en, match, groupIndex);
+		    	if(groupIndex == 1 && match != ''){
 		        	//console.log(`Found match, group ${groupIndex}: ${match}`);
-		        	return false;
+		        	flag = true;
+		        	break;
 		    	}
-		    });
+		    }*/
 		}
 
-		return true;
+		return flag;
 	}
 
 	

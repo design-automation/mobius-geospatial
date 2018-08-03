@@ -140,7 +140,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 					continue;
 				}
 
-				// if(prodArr)	fn_code += "\n" + "prodArr.push(" + procedure["id"] + ")";
+				// if(prodArr)	fn_code += "\n" + "prodArr.push(" + procedure.id + ")";
 				fn_code += "\n" +  this.get_code_procedure(procedure, nodeVars, undefined, prodArr); 
 
 			}
@@ -268,7 +268,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 				}
 				else if(prod_type == ProcedureTypes.ElseControl){
 					statement = "else {";
-					code = "prodArr = (\'" + procedure["id"] + "\');\n" + code; 
+					// code = "prodArr.id = (\'" + procedure.id + "\');\n" + code; 
 				}
 				else if(prod_type == ProcedureTypes.ForLoopControl){
 					statement = "for ( let " + procedure.left.expression + " of " + procedure.right.expression + "){"
@@ -307,7 +307,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 
 			// add procedure id to track failing
 			if(prodArr && prod_type != ProcedureTypes.ElseControl && prod_type !==ProcedureTypes.ElseIfControl){ 
-				code = "prodArr = (\'" + procedure["id"] + "\');\n" + code; 
+				// code = "prodArr.id = (\'" + procedure.id + "\');\n" + code; 
 			};
 
 			return code;
@@ -331,7 +331,7 @@ export class CodeGeneratorJS extends CodeGenerator{
 
 		execute_node(node: IGraphNode, params: any, __Mobius__Modules__: any, print: Function, globals?: any): any{
 
-			let prodArr: number = 1;
+			let prodArr: any = {id: undefined};
 			let str: string = "";
 
 			if(globals){
@@ -347,19 +347,23 @@ export class CodeGeneratorJS extends CodeGenerator{
 			//ConsoleService.log_to_db(`Generated Script: ${str}`);
 
 			let result: any;
+			console.log(__Mobius__Modules__);
 
 			try{
 				result = (new Function('params', '__MOBIUS_MODULES__', '__MOBIUS_PRINT__', str))(params, __Mobius__Modules__, print);
+				ConsoleService.log_to_db(`<code>${str}</code> <br><br><b>Successfully Executed</b>`)
 			}
 			catch(ex){
 
-				ConsoleService.log_to_db(`Generated Script:<br> ${str} <br><br>Execution Error: <br>${ex}`)
+				ConsoleService.log_to_db(`<code>${str}</code> <br><br> <b>Execution Error:</b> <br>${ex}`)
 				node.hasError = true;
 
+
 				let prodWithError: number = prodArr;
+				console.log("prodArr", prodArr);
 
 				let markError = function(prod: IProcedure, id: number){
-					if(prod["id"] && id && prod["id"] == id){
+					if(prod.id && id && prod.id == id){
 						prod.error = (true);
 					}
 
@@ -372,17 +376,18 @@ export class CodeGeneratorJS extends CodeGenerator{
 				}
 				
 				if(prodWithError){
+					console.log(prodWithError);
 					node.procedure.map(function(prod: IProcedure){
 
-						if(prod["id"] == prodWithError){
+						if(prod.id == prodWithError){
 							prod.error = (true);
 						}
 
-						/*if(prod.hasChildren){
+						if(prod.hasChildren){
 							prod.children.map(function(p){
 								markError(p, prodWithError);
 							})
-						}*/
+						}
 
 					});
 				}
