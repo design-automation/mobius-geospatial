@@ -20,6 +20,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular-redux/store": "^9.0.0",
     "@angular/animations": "^5.2.10",
     "@angular/cdk": "^5.2.5",
     "@angular/common": "^5.2.10",
@@ -55,6 +56,7 @@
     "ngx-json-viewer": "^2.2.0",
     "ngx-pagination": "^3.0.3",
     "papaparse": "^4.4.0",
+    "redux": "^4.0.0",
     "rxjs": "^5.5.2",
     "shpjs": "^3.4.2",
     "three": "^0.88.0",

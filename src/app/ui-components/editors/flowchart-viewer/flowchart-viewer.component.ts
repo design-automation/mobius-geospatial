@@ -16,6 +16,11 @@ import { ConsoleService } from '../../../global-services/console.service';
 import { MobiusService } from '../../../global-services/mobius.service';
 import { NodeLibraryService } from '../../../global-services/node-library.service';
 
+import { NgRedux, select } from '@angular-redux/store';
+import { IAppState } from '../../../store';
+import { ADD_NODE } from '../../../actions';
+
+
 abstract class  FlowchartRenderUtils{
   private static _portWidth: number = 15; 
   private static _margin: number = 10;  
@@ -81,6 +86,9 @@ abstract class  FlowchartRenderUtils{
 })
 export class FlowchartViewerComponent implements OnInit, OnDestroy{
 
+  @select() nodes;
+  @select() lastUpdate;
+
   pan_mode: boolean = false;
   pan_init;
   left: number = 0; 
@@ -102,17 +110,18 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
   constructor(private _fs: FlowchartService, 
     private _mb: MobiusService,
     private $log: ConsoleService, 
-    private _ns: NodeLibraryService){}
+    private _ns: NodeLibraryService, 
+    private ngRedux: NgRedux<IAppState>){}
 
   ngOnInit(){
-    this.subscriptions.push(this._fs.flowchart$.subscribe((fc) => { if(fc){ this.fc = fc; this.render_flowchart(); }  }));
+    //this.subscriptions.push(this._fs.flowchart$.subscribe((fc) => { if(fc){ this.fc = fc; this.render_flowchart(); }  }));
     //this.subscriptions.push(this._fs.node$.subscribe( (node) => this.active_node = node ));
   }
 
   ngOnDestroy(){
-    this.subscriptions.map(function(s){
-      s.unsubscribe();
-    })
+    // this.subscriptions.map(function(s){
+    //   s.unsubscribe();
+    // })
   }
   
   push_flowchart(){
@@ -255,8 +264,10 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
   //
   add_node($event): void{
     $event.stopPropagation();
-    this.fc = FlowchartUtils.add_node(this.fc);
-    this.push_flowchart()
+    alert("Add node");
+    this.ngRedux.dispatch({type: ADD_NODE});
+    // this.fc = FlowchartUtils.add_node(this.fc);
+    // this.push_flowchart()
   }
 
   addEdge(outputPortAddress: number[], inputPortAddress: number[]): void{

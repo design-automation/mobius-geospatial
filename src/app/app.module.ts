@@ -4,6 +4,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterModule, Routes } from '@angular/router';
 
+import { NgRedux, NgReduxModule } from '@angular-redux/store';
+import { IAppState, rootReducer, INITIAL_STATE } from './store';
+
 import { AppComponent } from './app.component';
 
 import { CustomMaterialModule } from './custom-angular-modules/CustomMaterialModule';
@@ -146,6 +149,7 @@ const appRoutes: Routes = [
     GSViewer, 
     MobiusCesium,
     NgxJsonViewerModule,
+    NgReduxModule
   ],
   providers: [
               FlowchartService, 
@@ -159,4 +163,8 @@ const appRoutes: Routes = [
             ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+    constructor (ngRedux: NgRedux<IAppState>) {
+        ngRedux.configureStore(rootReducer, INITIAL_STATE);
+    }
+}
