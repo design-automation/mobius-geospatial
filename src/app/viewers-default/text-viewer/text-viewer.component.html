@@ -1,0 +1,25 @@
+<div class="default" *ngIf="!(selected_node | async)">
+	No Node Selected
+</div>
+
+<div class="container" *ngIf="(selected_node | async)">
+	<mat-accordion multi="true" [displayMode]="flat">
+			<mat-expansion-panel 
+				[expanded]="true" 
+				*ngFor="let output of (selected_node | async)?.outputs">
+				
+				<mat-expansion-panel-header>
+					<mat-panel-title>
+					  {{ output.name }}
+					</mat-panel-title>
+					<mat-panel-description>
+					</mat-panel-description>
+				</mat-expansion-panel-header>
+
+				{{ output.value }}
+			</mat-expansion-panel>
+			
+	</mat-accordion>
+</div> 
+
+

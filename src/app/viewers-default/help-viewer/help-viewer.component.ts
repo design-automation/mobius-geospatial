@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FlowchartService } from '../../../global-services/flowchart.service'; 
-import { ModuleService } from '../../../global-services/module.service'; 
+import { FlowchartService } from '../../global-services/flowchart.service'; 
+import { ModuleService } from '../../global-services/module.service'; 
 
 import { Subscription } from 'rxjs/Subscription';
 import { DomSanitizer} from '@angular/platform-browser';

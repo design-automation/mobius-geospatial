@@ -14,7 +14,6 @@ import {ModuleService} from "./module.service";
 import {MobiusService} from "./mobius.service";
 import * as CircularJSON from 'circular-json';
 
-
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material';
 
 @Injectable()

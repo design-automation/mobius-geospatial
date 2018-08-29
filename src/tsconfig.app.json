@@ -13,6 +13,7 @@
     "test.ts",
     "**/*.spec.ts",
     "./node_modules/*",
-    "./gs-json/"
+    "./gs-json/",
+    "./app/viewers-extra/*"
   ]
 }

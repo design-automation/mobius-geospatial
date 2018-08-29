@@ -1,8 +1,8 @@
 import { Component, Injector, OnInit, OnDestroy } from '@angular/core';
 import { AceEditorModule } from 'ng2-ace-editor';
 
-import { FlowchartService } from "../../../global-services/flowchart.service";
-import { CodeService } from "../../../global-services/code.service";
+import { FlowchartService } from "../../global-services/flowchart.service";
+import { CodeService } from "../../global-services/code.service";
 
 import * as js_beautify from 'js-beautify';
 
@@ -14,7 +14,6 @@ import * as js_beautify from 'js-beautify';
 export class CodeViewerComponent implements OnInit, OnDestroy{
 
 	private subscriptions = [];
-	
 	private _codeString: string;
 
 	constructor(private _cs: CodeService, 

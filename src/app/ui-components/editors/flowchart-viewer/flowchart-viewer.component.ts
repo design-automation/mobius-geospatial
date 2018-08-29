@@ -18,7 +18,7 @@ import { NodeLibraryService } from '../../../global-services/node-library.servic
 
 import { NgRedux, select } from '@angular-redux/store';
 import { IAppState } from '../../../store';
-import { ADD_NODE } from '../../../actions';
+import { ADD_NODE, SELECT_NODE } from '../../../actions';
 
 
 abstract class  FlowchartRenderUtils{
@@ -114,14 +114,14 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
     private ngRedux: NgRedux<IAppState>){}
 
   ngOnInit(){
-    //this.subscriptions.push(this._fs.flowchart$.subscribe((fc) => { if(fc){ this.fc = fc; this.render_flowchart(); }  }));
-    //this.subscriptions.push(this._fs.node$.subscribe( (node) => this.active_node = node ));
+    this.subscriptions.push(this._fs.flowchart$.subscribe((fc) => { if(fc){ this.fc = fc; this.render_flowchart(); }  }));
+    this.subscriptions.push(this._fs.node$.subscribe( (node) => this.active_node = node ));
   }
 
   ngOnDestroy(){
-    // this.subscriptions.map(function(s){
-    //   s.unsubscribe();
-    // })
+    this.subscriptions.map(function(s){
+      s.unsubscribe();
+    })
   }
   
   push_flowchart(){
@@ -129,6 +129,7 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
   }
 
   push_node(){
+    this.ngRedux.dispatch({type: SELECT_NODE, action: this.active_node});
     this._fs.push_node(this.active_node);
   }
 
@@ -263,11 +264,9 @@ export class FlowchartViewerComponent implements OnInit, OnDestroy{
   // Add node and edges
   //
   add_node($event): void{
-    $event.stopPropagation();
-    alert("Add node");
-    this.ngRedux.dispatch({type: ADD_NODE});
-    // this.fc = FlowchartUtils.add_node(this.fc);
-    // this.push_flowchart()
+    // this.ngRedux.dispatch({type: ADD_NODE});
+    this.fc = FlowchartUtils.add_node(this.fc);
+    this.push_flowchart()
   }
 
   addEdge(outputPortAddress: number[], inputPortAddress: number[]): void{

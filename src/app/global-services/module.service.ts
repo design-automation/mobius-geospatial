@@ -27,14 +27,14 @@ export class ModuleService {
 
         });
 
-        console.log(m["_name"] + " :: " , Object.keys(fnsObj))
+        //console.log(m["_name"] + " :: " , Object.keys(fnsObj))
 
         if(mObj[m["_name"]]){
-          console.log("not undefined ... add functions")
-          console.log(Object.keys(mObj[m["_name"]]));
-          console.log(Object.keys(fnsObj));
+          //console.log("not undefined ... add functions")
+          //console.log(Object.keys(mObj[m["_name"]]));
+          //console.log(Object.keys(fnsObj));
           mObj[m["_name"]] = {...mObj[m["_name"]], ...fnsObj};
-          console.log(Object.keys(mObj[m["_name"]]));
+          //console.log(Object.keys(mObj[m["_name"]]));
         }
         else{
           mObj[m["_name"]] = fnsObj;

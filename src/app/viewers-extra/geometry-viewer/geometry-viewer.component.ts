@@ -1,7 +1,7 @@
 import { Component, Injector, OnInit } from '@angular/core';
 
 import { OutputPort } from '../../../base-classes/port/PortModule';
-import { FlowchartService } from '../../../global-services/flowchart.service';
+import { FlowchartService } from '../global-services/flowchart.service';
 
 import * as gs from 'gs-json';
 
