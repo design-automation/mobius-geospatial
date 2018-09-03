@@ -63,7 +63,7 @@ import { PortTypePipe } from './pipes/port-type-name.pipe';
 import { PublishSettingsComponent } from './ui-components/controls/publish-settings/publish-settings.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-import { DEFAULT_VIEWERS }  from './viewers-default';
+import { DEFAULT_VIEWERS, DEFAULT_VIEWER_COMPONENTS }  from './viewers-default';
 //import * from './viewers-extras/index';
 
 const appRoutes: Routes = [
@@ -73,9 +73,7 @@ const appRoutes: Routes = [
   { path: '**', component: MobiusEditorComponent }
 ];
 
-
-const DEFAULT_VIEWER_COMPONENTS = DEFAULT_VIEWERS.map((viewObj)=> viewObj.viewer);
-
+console.log(DEFAULT_VIEWER_COMPONENTS)
 
 @NgModule({
   declarations: [
@@ -115,7 +113,7 @@ const DEFAULT_VIEWER_COMPONENTS = DEFAULT_VIEWERS.map((viewObj)=> viewObj.viewer
     ViewerContainerComponent,
     FlowchartViewerComponent,
     EditorComponent,
-    ...DEFAULT_VIEWER_COMPONENTS
+    //...DEFAULT_VIEWER_COMPONENTS
   ],
   imports: [
     BrowserModule,

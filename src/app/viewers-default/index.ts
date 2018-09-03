@@ -22,3 +22,4 @@ export const DEFAULT_VIEWERS = [
 		 //InfoViewerComponent 
 	   ]
 
+export const DEFAULT_VIEWER_COMPONENTS = DEFAULT_VIEWERS.map((viewObj)=> viewObj.viewer);
